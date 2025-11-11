@@ -4,7 +4,7 @@
   "description": "A vision understanding MCP server powered by GLM-4.5V",
   "type": "module",
   "bin": {
-    "luma-mcp": "./build/index.js"
+    "luma-mcp": "build/index.js"
   },
   "main": "./build/index.js",
   "scripts": {
@@ -25,7 +25,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/JochenYang/luma-mcp.git"
+    "url": "git+https://github.com/JochenYang/luma-mcp.git"
   },
   "bugs": {
     "url": "https://github.com/JochenYang/luma-mcp/issues"
