@@ -1,0 +1,45 @@
+{
+  "name": "luma-mcp",
+  "version": "1.0.0",
+  "description": "A vision understanding MCP server powered by GLM-4.5V",
+  "type": "module",
+  "bin": {
+    "luma-mcp": "./build/index.js"
+  },
+  "main": "./build/index.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "prepare": "npm run build",
+    "test:local": "tsx test/test-local.ts"
+  },
+  "keywords": [
+    "mcp",
+    "vision",
+    "ai",
+    "glm-4.5v",
+    "zhipu",
+    "image-understanding"
+  ],
+  "author": "Jochen",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JochenYang/luma-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JochenYang/luma-mcp/issues"
+  },
+  "homepage": "https://github.com/JochenYang/luma-mcp#readme",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "axios": "^1.7.9",
+    "sharp": "^0.33.5",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.7.2"
+  }
+}

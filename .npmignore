@@ -1,0 +1,8 @@
+src/
+docs/
+examples/
+*.log
+.DS_Store
+.env
+tsconfig.json
+PUBLISHING.md
