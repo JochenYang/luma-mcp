@@ -84,12 +84,11 @@ export class ZhipuClient {
       temperature: this.config.temperature,
       max_tokens: this.config.maxTokens,
       top_p: this.config.topP,
-      thinking: { type: 'enabled' }, // 默认启用 thinking
     };
 
-    // 允许显式禁用 thinking
-    if (enableThinking === false) {
-      delete requestBody.thinking;
+    // 允许显式启用 thinking（默认关闭以提高速度和降低成本）
+    if (this.config.enableThinking || enableThinking === true) {
+      requestBody.thinking = { type: 'enabled' };
     }
 
     logger.info('Calling GLM-4.5V API', { 
