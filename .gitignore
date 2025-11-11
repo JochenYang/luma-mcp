@@ -31,3 +31,4 @@ test/*.jpeg
 # Temporary files
 *.tmp
 *.temp
+mcp-server

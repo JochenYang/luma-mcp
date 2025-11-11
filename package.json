@@ -1,6 +1,6 @@
 {
   "name": "luma-mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A vision understanding MCP server powered by GLM-4.5V",
   "type": "module",
   "bin": {

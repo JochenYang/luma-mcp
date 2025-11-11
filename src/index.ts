@@ -44,21 +44,21 @@ async function createServer() {
 
   // 创建带重试的分析函数
   const analyzeWithRetry = withRetry(
-    async (imageSource: string, question?: string) => {
+    async (imageSource: string, prompt: string) => {
       // 1. 验证图片来源
       await validateImageSource(imageSource);
 
       // 2. 处理图片（读取或返回URL）
       const imageDataUrl = await imageToBase64(imageSource);
 
-      // 3. 构建提示词
-      const prompt = buildAnalysisPrompt(question);
+      // 3. 构建提示词（直接使用prompt）
+      const fullPrompt = buildAnalysisPrompt(prompt);
 
       // 4. 调用 GLM-4.5V 分析图片
-      return await zhipuClient.analyzeImage(imageDataUrl, prompt);
+      return await zhipuClient.analyzeImage(imageDataUrl, fullPrompt);
     },
     2, // 最多重试2次
-    1000 // 初始延迟1秒
+    1000 // 初始延补1秒
   );
 
   // 注册工具 - 使用 McpServer.tool() API
@@ -79,18 +79,18 @@ async function createServer() {
 
 如果你是不支持视觉的AI模型，看到图片路径时应主动调用此工具来分析图片内容。`,
     {
-      image_source: z.string().describe('图片来源：本地文件路径（含临时路径）或远程URL。例如："./image.png"、"/tmp/screenshot.png"、"C:\\Users\\...\\image.jpg"、"https://example.com/pic.jpg"'),
-      question: z.string().optional().describe('可选：用户的问题或分析指令。例如："这段代码为什么报错？"、"分析这个UI设计的问题"、"识别图片中的文字"'),
+      image_source: z.string().describe('图片来源：本地文件路径（含临时路径）、远程URL。支持 PNG/JPG/WebP/GIF。例如："./image.png"、"/tmp/screenshot.png"、"C:\\Users\\...\\image.jpg"、"https://example.com/pic.jpg"'),
+      prompt: z.string().describe('必须：详细的分析指令。如果用户没有提供具体问题，默认使用："请详细分析这张图片的内容"。对于具体任务：代码分析、UI设计、错误诊断、文字识别等，应提供明确的指令。例如："这段代码为什么报错？"、"分析这个UI的布局和风格"、"识别图片中的所有文字"'),
     },
     async (params) => {
       try {
         logger.info('Analyzing image', {
           source: params.image_source,
-          hasQuestion: !!params.question,
+          prompt: params.prompt,
         });
 
         // 执行分析（带重试）
-        const result = await analyzeWithRetry(params.image_source, params.question);
+        const result = await analyzeWithRetry(params.image_source, params.prompt);
 
         logger.info('Image analysis completed successfully');
         return createSuccessResponse(result);
