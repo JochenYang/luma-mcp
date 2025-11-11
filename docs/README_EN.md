@@ -317,8 +317,6 @@ MIT License
 - [Zhipu AI Open Platform](https://open.bigmodel.cn/)
 - [GLM-4.5V Documentation](https://docs.bigmodel.cn/cn/guide/models/vlm/glm-4.5v)
 - [MCP Protocol Documentation](https://modelcontextprotocol.io/)
-- [Design Documentation](./design.md)
-- [Installation Guide](./installation.md)
 
 ## Author
 

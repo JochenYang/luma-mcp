@@ -317,8 +317,6 @@ MIT License
 - [智谱 AI 开放平台](https://open.bigmodel.cn/)
 - [GLM-4.5V 文档](https://docs.bigmodel.cn/cn/guide/models/vlm/glm-4.5v)
 - [MCP 协议文档](https://modelcontextprotocol.io/)
-- [设计文档](./docs/design.md)
-- [安装配置指南](./docs/installation.md)
 
 ## 作者
 
