@@ -137,9 +137,10 @@ For more MCP client configuration methods, refer to [Zhipu Official Documentatio
 - Luma MCP primarily serves **non-vision models** (like GPT-4, Claude Opus, etc.)
 
 **How to Ensure Tool Invocation**:
-1. Explicitly mention the tool: `Use Luma to analyze this image`
-2. Provide image path: `Analyze the code error in ./screenshot.png`
-3. Use tool name: `Use analyze_image tool to view this image`
+1. Use full tool name: `Use mcp__luma-mcp__analyze_image tool to analyze this image`
+2. Use simplified name: `Use analyze_image tool to view ./screenshot.png`
+3. Provide image path: `Use image analysis tool to check ./screenshot.png for code errors`
+4. Mention server explicitly: `Analyze this image via luma-mcp server`
 
 **Note**: Simply pasting an image in the chat box won't automatically trigger Luma for non-vision models - explicit instruction is required.
 

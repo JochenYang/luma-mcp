@@ -137,9 +137,10 @@ claude mcp add -s user luma-mcp --env ZHIPU_API_KEY=your-api-key -- npx -y luma-
 - Luma MCP 主要服务于**不支持视觉的模型**（如 GPT-4、Claude Opus 等文本模型）
 
 **如何确保工具被调用**:
-1. 明确提及工具：`使用 Luma 分析这张图片`
-2. 提供图片路径：`请分析 ./screenshot.png 中的代码错误`
-3. 使用工具名称：`用 analyze_image 工具查看这张图片`
+1. 使用完整工具名：`使用 mcp__luma-mcp__analyze_image 工具分析这张图片`
+2. 使用简化名称：`用 analyze_image 工具查看 ./screenshot.png`
+3. 提供图片路径：`请用图片分析工具查看 ./screenshot.png 中的代码错误`
+4. 明确提及服务器：`通过 luma-mcp 服务器分析这张图片`
 
 **注意**: 直接在聊天框粘贴图片，非视觉模型不会自动调用 Luma，需要明确指示。
 

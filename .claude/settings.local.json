@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__devmind__list_projects",
+      "mcp__time__current_time"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
