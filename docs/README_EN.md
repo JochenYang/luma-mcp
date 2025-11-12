@@ -191,26 +191,27 @@ Universal tool for analyzing image content.
   - Supported formats: JPG, PNG, WebP, GIF
   - Local files: Absolute or relative path
   - Remote images: URL starting with https://
-- `question` (optional): Question or analysis instruction about the image
+- `prompt` (required): Analysis instruction or question about the image
 
 **Examples**:
 
 ```typescript
 // General analysis
 analyze_image({
-  image_source: "./screenshot.png"
+  image_source: "./screenshot.png",
+  prompt: "Please analyze this image in detail"
 })
 
 // Code analysis
 analyze_image({
   image_source: "./code-error.png",
-  question: "Why is this code throwing an error? Provide fix suggestions"
+  prompt: "Why is this code throwing an error? Provide fix suggestions"
 })
 
 // UI analysis
 analyze_image({
   image_source: "https://example.com/ui.png",
-  question: "Analyze the layout and usability issues of this interface"
+  prompt: "Analyze the layout and usability issues of this interface"
 })
 ```
 
@@ -223,9 +224,26 @@ analyze_image({
 | `ZHIPU_MAX_TOKENS`      | No       | `4096`     | Maximum tokens to generate |
 | `ZHIPU_TEMPERATURE`     | No       | `0.7`      | Temperature (0-1)          |
 | `ZHIPU_TOP_P`           | No       | `0.7`      | Top-p parameter (0-1)      |
-| `ZHIPU_ENABLE_THINKING` | No       | `false`    | Force enable thinking mode |
+|| `ZHIPU_ENABLE_THINKING` | No       | `true`     | Enable thinking mode       |
 
-Note: Thinking mode is enabled by default, no extra configuration needed.
+**Thinking Mode**:
+- Enabled by default for better accuracy and detailed analysis
+- To disable (faster speed, lower cost), set in config:
+  ```json
+  {
+    "mcpServers": {
+      "luma": {
+        "command": "npx",
+        "args": ["-y", "luma-mcp"],
+        "env": {
+          "ZHIPU_API_KEY": "your-api-key",
+          "ZHIPU_ENABLE_THINKING": "false"
+        }
+      }
+    }
+  }
+  ```
+- Disabling saves ~20-30% tokens and improves speed by ~30%
 
 ## Development
 

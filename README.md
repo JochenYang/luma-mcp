@@ -191,26 +191,27 @@ npm run test:local https://example.com/image.jpg
   - 支持格式: JPG, PNG, WebP, GIF
   - 本地文件: 绝对路径或相对路径
   - 远程图片: https:// 开头的 URL
-- `question` (可选): 关于图片的问题或分析指令
+- `prompt` (必需): 分析指令或问题
 
 **示例**:
 
 ```typescript
 // 通用分析
 analyze_image({
-  image_source: "./screenshot.png"
+  image_source: "./screenshot.png",
+  prompt: "请详细分析这张图片的内容"
 })
 
 // 代码分析
 analyze_image({
   image_source: "./code-error.png",
-  question: "这段代码为什么报错？请提供修复建议"
+  prompt: "这段代码为什么报错？请提供修复建议"
 })
 
 // UI 分析
 analyze_image({
   image_source: "https://example.com/ui.png",
-  question: "分析这个界面的布局和可用性问题"
+  prompt: "分析这个界面的布局和可用性问题"
 })
 ```
 
@@ -223,9 +224,26 @@ analyze_image({
 | `ZHIPU_MAX_TOKENS`      | 否   | `4096`     | 最大生成 tokens      |
 | `ZHIPU_TEMPERATURE`     | 否   | `0.7`      | 温度参数 (0-1)       |
 | `ZHIPU_TOP_P`           | 否   | `0.7`      | Top-p 参数 (0-1)     |
-| `ZHIPU_ENABLE_THINKING` | 否   | `false`    | 是否强制启用思考模式 |
+| `ZHIPU_ENABLE_THINKING` | 否   | `true`     | 是否启用思考模式 |
 
-注意: 思考模式默认已启用，无需额外配置。
+**思考模式说明**:
+- 默认开启，提高图片分析的准确性和详细程度
+- 如需关闭（提高速度、降低成本），请在配置文件中设置：
+  ```json
+  {
+    "mcpServers": {
+      "luma": {
+        "command": "npx",
+        "args": ["-y", "luma-mcp"],
+        "env": {
+          "ZHIPU_API_KEY": "your-api-key",
+          "ZHIPU_ENABLE_THINKING": "false"
+        }
+      }
+    }
+  }
+  ```
+- 关闭后可节省 20-30% tokens 消耗，响应速度提升约 30%
 
 ## 开发
 
