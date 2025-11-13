@@ -3,7 +3,10 @@
  * 从环境变量读取配置
  */
 
+export type ModelProvider = 'zhipu' | 'siliconflow';
+
 export interface LumaConfig {
+  provider: ModelProvider;
   apiKey: string;
   model: string;
   maxTokens: number;
@@ -16,18 +19,36 @@ export interface LumaConfig {
  * 从环境变量加载配置
  */
 export function loadConfig(): LumaConfig {
-  const apiKey = process.env.ZHIPU_API_KEY;
+  // 确定使用的模型提供商
+  const provider = (process.env.MODEL_PROVIDER?.toLowerCase() || 'zhipu') as ModelProvider;
   
-  if (!apiKey) {
-    throw new Error('ZHIPU_API_KEY environment variable is required');
+  // 根据提供商获取 API Key
+  let apiKey: string | undefined;
+  let defaultModel: string;
+  
+  if (provider === 'siliconflow') {
+    apiKey = process.env.SILICONFLOW_API_KEY;
+    defaultModel = 'deepseek-ai/DeepSeek-OCR';
+    
+    if (!apiKey) {
+      throw new Error('SILICONFLOW_API_KEY environment variable is required when using SiliconFlow provider');
+    }
+  } else {
+    apiKey = process.env.ZHIPU_API_KEY;
+    defaultModel = 'glm-4.5v';
+    
+    if (!apiKey) {
+      throw new Error('ZHIPU_API_KEY environment variable is required when using Zhipu provider');
+    }
   }
 
   return {
+    provider,
     apiKey,
-    model: process.env.ZHIPU_MODEL || 'glm-4.5v',
-    maxTokens: parseInt(process.env.ZHIPU_MAX_TOKENS || '4096', 10),
-    temperature: parseFloat(process.env.ZHIPU_TEMPERATURE || '0.7'),
-    topP: parseFloat(process.env.ZHIPU_TOP_P || '0.7'),
-    enableThinking: process.env.ZHIPU_ENABLE_THINKING === 'true',
+    model: process.env.MODEL_NAME || defaultModel,
+    maxTokens: parseInt(process.env.MAX_TOKENS || '4096', 10),
+    temperature: parseFloat(process.env.TEMPERATURE || '0.7'),
+    topP: parseFloat(process.env.TOP_P || '0.7'),
+    enableThinking: process.env.ENABLE_THINKING === 'true',
   };
 }
