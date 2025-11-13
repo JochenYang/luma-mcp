@@ -1,26 +1,28 @@
 # Luma MCP
 
-Vision understanding MCP server powered by Zhipu GLM-4.5V, providing visual capabilities to AI assistants that don't natively support image understanding.
+Multi-model vision understanding MCP server, providing visual capabilities to AI assistants that don't natively support image understanding.
 
 English | [中文](../README.md)
 
 ## Features
 
+- **Multi-Model Support**: Supports GLM-4.5V (Zhipu) and DeepSeek-OCR (SiliconFlow)
 - **Simple Design**: Single `analyze_image` tool handles all image analysis tasks
 - **Smart Understanding**: Automatically recognizes different scenarios (code, UI, errors, etc.)
-- **Comprehensive Support**: Code screenshots, UI design, error diagnosis, general images
+- **Comprehensive Support**: Code screenshots, UI design, error diagnosis, OCR text recognition
 - **Standard MCP Protocol**: Seamless integration with Claude Desktop, Cline, and other MCP clients
-- **GLM-4.5V Powered**: Excellent Chinese understanding, cost-effective API
+- **Free Option**: DeepSeek-OCR via SiliconFlow is completely free
 - **URL Support**: Handles both local files and remote image URLs
 - **Retry Mechanism**: Built-in exponential backoff retry for reliability
-- **Thinking Mode**: Enabled by default for deeper analysis
 
 ## Quick Start
 
 ### Prerequisites
 
 - Node.js >= 18.0.0
-- Zhipu AI API Key ([Get it here](https://open.bigmodel.cn/))
+- **Choose one model**:
+  - **Option A**: Zhipu AI API Key ([Get it here](https://open.bigmodel.cn/)) - Excellent Chinese understanding
+  - **Option B**: SiliconFlow API Key ([Get it here](https://cloud.siliconflow.cn/)) - **Free to use**, Strong OCR capability
 
 ### Installation
 
@@ -47,7 +49,7 @@ npx luma-mcp
 
 **macOS config location**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 
-**Using npx (Recommended)**:
+**Option A: Using Zhipu GLM-4.5V**:
 
 ```json
 {
@@ -63,7 +65,24 @@ npx luma-mcp
 }
 ```
 
-**Local Development**:
+**Option B: Using SiliconFlow DeepSeek-OCR (Free)**:
+
+```json
+{
+  "mcpServers": {
+    "luma": {
+      "command": "npx",
+      "args": ["-y", "luma-mcp"],
+      "env": {
+        "MODEL_PROVIDER": "siliconflow",
+        "SILICONFLOW_API_KEY": "your-siliconflow-api-key"
+      }
+    }
+  }
+}
+```
+
+**Local Development (Zhipu)**:
 
 ```json
 {
@@ -73,6 +92,23 @@ npx luma-mcp
       "args": ["D:\\codes\\Luma_mcp\\build\\index.js"],
       "env": {
         "ZHIPU_API_KEY": "your-zhipu-api-key"
+      }
+    }
+  }
+}
+```
+
+**Local Development (SiliconFlow)**:
+
+```json
+{
+  "mcpServers": {
+    "luma": {
+      "command": "node",
+      "args": ["D:\\codes\\Luma_mcp\\build\\index.js"],
+      "env": {
+        "MODEL_PROVIDER": "siliconflow",
+        "SILICONFLOW_API_KEY": "your-siliconflow-api-key"
       }
     }
   }
@@ -83,9 +119,9 @@ Restart Claude Desktop after configuration.
 
 #### Cline (VSCode)
 
-**Using npx (Recommended)**:
+Create `mcp.json` in project root or `.vscode/` directory
 
-Create `mcp.json` in project root or `.vscode/` directory:
+**Option A: Using Zhipu GLM-4.5V**:
 
 ```json
 {
@@ -101,16 +137,17 @@ Create `mcp.json` in project root or `.vscode/` directory:
 }
 ```
 
-**Local Development**:
+**Option B: Using SiliconFlow DeepSeek-OCR (Free)**:
 
 ```json
 {
   "mcpServers": {
     "luma": {
-      "command": "node",
-      "args": ["D:\\codes\\Luma_mcp\\build\\index.js"],
+      "command": "npx",
+      "args": ["-y", "luma-mcp"],
       "env": {
-        "ZHIPU_API_KEY": "your-zhipu-api-key"
+        "MODEL_PROVIDER": "siliconflow",
+        "SILICONFLOW_API_KEY": "your-siliconflow-api-key"
       }
     }
   }
@@ -119,8 +156,14 @@ Create `mcp.json` in project root or `.vscode/` directory:
 
 #### Claude Code (CLI)
 
+**Using Zhipu GLM-4.5V**:
 ```bash
 claude mcp add -s user luma-mcp --env ZHIPU_API_KEY=your-api-key -- npx -y luma-mcp
+```
+
+**Using SiliconFlow DeepSeek-OCR (Free)**:
+```bash
+claude mcp add -s user luma-mcp --env MODEL_PROVIDER=siliconflow --env SILICONFLOW_API_KEY=your-api-key -- npx -y luma-mcp
 ```
 
 #### Other Tools
@@ -164,6 +207,7 @@ Claude: [Automatically calls analyze_image tool]
 
 Test without MCP clients:
 
+**Test Zhipu GLM-4.5V**:
 ```bash
 # Set API Key
 export ZHIPU_API_KEY="your-api-key"  # macOS/Linux
@@ -171,7 +215,23 @@ $env:ZHIPU_API_KEY="your-api-key"    # Windows PowerShell
 
 # Test local image
 npm run test:local ./test.png
+```
 
+**Test SiliconFlow DeepSeek-OCR**:
+```bash
+# Set API Key and provider
+export MODEL_PROVIDER=siliconflow
+export SILICONFLOW_API_KEY="your-api-key"  # macOS/Linux
+
+$env:MODEL_PROVIDER="siliconflow"
+$env:SILICONFLOW_API_KEY="your-api-key"    # Windows PowerShell
+
+# Test local image
+npm run test:local ./test.png
+```
+
+**Other test commands**:
+```bash
 # Test with question
 npm run test:local ./code-error.png "What's wrong with this code?"
 
@@ -217,14 +277,32 @@ analyze_image({
 
 ## Environment Variables
 
-| Variable                | Required | Default    | Description                |
-|-------------------------|----------|------------|----------------------------|
-| `ZHIPU_API_KEY`         | Yes      | -          | Zhipu AI API key           |
-| `ZHIPU_MODEL`           | No       | `glm-4.5v` | Model to use               |
-| `ZHIPU_MAX_TOKENS`      | No       | `4096`     | Maximum tokens to generate |
-| `ZHIPU_TEMPERATURE`     | No       | `0.7`      | Temperature (0-1)          |
-| `ZHIPU_TOP_P`           | No       | `0.7`      | Top-p parameter (0-1)      |
-|| `ZHIPU_ENABLE_THINKING` | No       | `true`     | Enable thinking mode       |
+### General Configuration
+
+| Variable          | Required | Default   | Description                                       |
+|-------------------|----------|-----------|---------------------------------------------------|
+| `MODEL_PROVIDER`  | No       | `zhipu`   | Model provider: `zhipu` or `siliconflow`          |
+| `MODEL_NAME`      | No       | See below | Model name (auto-selected based on provider)      |
+| `MAX_TOKENS`      | No       | `4096`    | Maximum tokens to generate                        |
+| `TEMPERATURE`     | No       | `0.7`     | Temperature (0-1)                                 |
+| `TOP_P`           | No       | `0.7`     | Top-p parameter (0-1)                             |
+| `ENABLE_THINKING` | No       | `false`   | Enable thinking mode (GLM-4.5V only)              |
+
+### Zhipu GLM-4.5V Specific
+
+| Variable         | Required             | Default    | Description       |
+|------------------|----------------------|------------|-------------------|
+| `ZHIPU_API_KEY`  | Yes (when using Zhipu) | -        | Zhipu AI API key  |
+
+Default model: `glm-4.5v`
+
+### SiliconFlow DeepSeek-OCR Specific
+
+| Variable               | Required                      | Default                      | Description            |
+|------------------------|-------------------------------|------------------------------|------------------------|
+| `SILICONFLOW_API_KEY`  | Yes (when using SiliconFlow)  | -                            | SiliconFlow API key    |
+
+Default model: `deepseek-ai/DeepSeek-OCR`
 
 **Thinking Mode**:
 - Enabled by default for better accuracy and detailed analysis
@@ -264,8 +342,10 @@ npm run test:local <image-path> [question]
 luma-mcp/
 ├── src/
 │   ├── index.ts              # MCP server entry
-│   ├── config.ts             # Configuration management
+│   ├── config.ts             # Configuration management (multi-model)
+│   ├── vision-client.ts      # Vision model client interface
 │   ├── zhipu-client.ts       # GLM-4.5V API client
+│   ├── siliconflow-client.ts # DeepSeek-OCR API client
 │   ├── image-processor.ts    # Image processing
 │   ├── prompts.ts            # Prompt templates
 │   └── utils/
@@ -285,9 +365,16 @@ luma-mcp/
 
 ### How to get API Key?
 
+**Zhipu GLM-4.5V**:
 1. Visit [Zhipu Open Platform](https://open.bigmodel.cn/)
 2. Register/Login
 3. Go to console and create API Key
+4. Copy API Key to configuration file
+
+**SiliconFlow DeepSeek-OCR (Free)**:
+1. Visit [SiliconFlow Platform](https://cloud.siliconflow.cn/)
+2. Register/Login
+3. Go to API management and create API Key
 4. Copy API Key to configuration file
 
 ### What image formats are supported?
@@ -313,14 +400,30 @@ Log file location: `~/.luma-mcp/luma-mcp-YYYY-MM-DD.log`
 
 ### What's the cost?
 
-For GLM-4.5V pricing, refer to [Zhipu Official Pricing](https://open.bigmodel.cn/pricing).
+**SiliconFlow DeepSeek-OCR**: **Completely free**, no charges!
 
-Typical scenario estimates:
+**Zhipu GLM-4.5V**: For pricing, refer to [Zhipu Official Pricing](https://open.bigmodel.cn/pricing).
+
+Typical scenario estimates (GLM-4.5V):
 - Simple image understanding: 500-1000 tokens
 - Code screenshot analysis: 1500-2500 tokens
 - Detailed UI analysis: 2000-3000 tokens
 
 Enabling thinking mode increases tokens by approximately 20-30%.
+
+### How to choose a model?
+
+| Feature          | GLM-4.5V (Zhipu)  | DeepSeek-OCR (SiliconFlow) |
+|------------------|-------------------|--------------------------|
+| **Cost**         | Paid              | **Completely Free**      |
+| **Chinese**      | Excellent         | Good                     |
+| **OCR**          | Good              | **Excellent**            |
+| **Thinking Mode**| Supported         | Not supported            |
+| **Use Cases**    | General analysis  | OCR, Text recognition    |
+
+**Recommendations**:
+- Need OCR/text recognition → **DeepSeek-OCR** (free)
+- Need deep image understanding → **GLM-4.5V**
 
 ## Contributing
 
@@ -334,7 +437,43 @@ MIT License
 
 - [Zhipu AI Open Platform](https://open.bigmodel.cn/)
 - [GLM-4.5V Documentation](https://docs.bigmodel.cn/cn/guide/models/vlm/glm-4.5v)
+- [SiliconFlow Platform](https://cloud.siliconflow.cn/)
+- [DeepSeek-OCR Documentation](https://docs.siliconflow.cn/cn/api-reference/chat-completions/chat-completions)
 - [MCP Protocol Documentation](https://modelcontextprotocol.io/)
+
+## Changelog
+
+### [1.1.0] - 2025-11-13
+
+#### Added
+- 🎉 **Multi-Model Support**: Added SiliconFlow DeepSeek-OCR support
+- 🆓 **Free Option**: DeepSeek-OCR via SiliconFlow is completely free
+- 📐 **Unified Interface**: Created VisionClient interface for flexible model extension
+- ⚙️ **Flexible Configuration**: Easy model switching via `MODEL_PROVIDER` environment variable
+
+#### Changed
+- 🔧 Optimized environment variable naming, supports general configuration
+- 📝 Updated documentation with dual-model configuration and recommendations
+- 🏭️ Refactored code structure for better maintainability
+
+#### Technical Details
+- New files:
+  - `src/vision-client.ts` - Unified vision model client interface
+  - `src/siliconflow-client.ts` - SiliconFlow API client implementation
+  - `.env.example` - Configuration example file
+- Modified files:
+  - `src/config.ts` - Multi-provider configuration support
+  - `src/zhipu-client.ts` - Implements VisionClient interface
+  - `src/index.ts` - Dynamic client selection based on configuration
+
+### [1.0.3] - 2025-11-12
+
+- Vision understanding powered by Zhipu GLM-4.5V
+- Support for local files and remote URLs
+- Built-in retry mechanism
+- Thinking mode support
+
+For more update history, see [CHANGELOG.md](../CHANGELOG.md)
 
 ## Author
 
