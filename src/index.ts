@@ -93,7 +93,7 @@ async function createServer() {
 
 如果你是不支持视觉的AI模型，看到图片路径时应主动调用此工具来分析图片内容。`,
     {
-      image_source: z.string().describe('图片来源：本地文件路径（含临时路径）、远程URL。支持 PNG/JPG/WebP/GIF。例如："./image.png"、"/tmp/screenshot.png"、"C:\\Users\\...\\image.jpg"、"https://example.com/pic.jpg"'),
+      image_source: z.string().describe('图片来源：支持三种格式：1) 本地文件路径（含临时路径）、2) 远程URL（https://）、3) Data URI（data:image/png;base64,...）。支持 PNG/JPG/WebP/GIF。例如："./image.png"、"/tmp/screenshot.png"、"C:\\Users\\...\\image.jpg"、"https://example.com/pic.jpg"、"data:image/png;base64,iVBORw0KG..."'),
       prompt: z.string().describe('必须：详细的分析指令。如果用户没有提供具体问题，默认使用："请详细分析这张图片的内容"。对于具体任务：代码分析、UI设计、错误诊断、文字识别等，应提供明确的指令。例如："这段代码为什么报错？"、"分析这个UI的布局和风格"、"识别图片中的所有文字"'),
     },
     async (params) => {

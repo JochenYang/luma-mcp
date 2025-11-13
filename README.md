@@ -247,10 +247,11 @@ npm run test:local https://example.com/image.jpg
 
 **参数**:
 
-- `image_source` (必需): 图片路径或 URL
+- `image_source` (必需): 图片来源，支持三种格式
+  - **本地文件**: 绝对路径或相对路径（例：`./image.png`, `C:\Users\...\image.jpg`）
+  - **远程 URL**: https:// 开头的 URL（例：`https://example.com/pic.jpg`）
+  - **Data URI**: Base64 编码的图片数据（例：`data:image/png;base64,iVBORw0KGg...`）
   - 支持格式: JPG, PNG, WebP, GIF
-  - 本地文件: 绝对路径或相对路径
-  - 远程图片: https:// 开头的 URL
 - `prompt` (必需): 分析指令或问题
 
 **示例**:
@@ -272,6 +273,12 @@ analyze_image({
 analyze_image({
   image_source: "https://example.com/ui.png",
   prompt: "分析这个界面的布局和可用性问题"
+})
+
+// Data URI （当客户端支持时）
+analyze_image({
+  image_source: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA...",
+  prompt: "识别图片中的所有文字"
 })
 ```
 
@@ -381,6 +388,18 @@ luma-mcp/
 
 支持 JPG、PNG、WebP、GIF 格式。建议使用 JPG 格式以获得更好的压缩率。
 
+### 什么是 Data URI？
+
+Data URI 是一种将图片数据嵌入字符串的方式，格式为：
+```
+data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA...
+```
+
+**使用场景**：
+- 当 MCP 客户端（如 Claude Desktop）支持时，可以直接传递用户粘贴的图片
+- 无需保存为临时文件，更加高效
+- 当前支持状态：**服务器已支持**，等待客户端实现
+
 ### 图片大小限制？
 
 - 最大文件大小: 10MB
@@ -442,6 +461,16 @@ MIT License
 - [MCP 协议文档](https://modelcontextprotocol.io/)
 
 ## 更新日志
+
+### [1.1.1] - 2025-11-13
+
+#### 新增
+- 🖼️ **Data URI 支持**: 支持接收 base64 编码的图片数据（`data:image/png;base64,...`）
+- 🚀 **为未来做准备**: 当 MCP 客户端支持时，可直接传递用户粘贴的图片
+
+#### 修改
+- 更新工具描述，说明支持三种输入格式：本地路径、URL、Data URI
+- 新增 Data URI 格式验证（MIME 类型、大小限制）
 
 ### [1.1.0] - 2025-11-13
 
