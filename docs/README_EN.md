@@ -247,10 +247,11 @@ Universal tool for analyzing image content.
 
 **Parameters**:
 
-- `image_source` (required): Image path or URL
+- `image_source` (required): Image source, supports three formats
+  - **Local file**: Absolute or relative path (e.g., `./image.png`, `C:\Users\...\image.jpg`)
+  - **Remote URL**: URL starting with https:// (e.g., `https://example.com/pic.jpg`)
+  - **Data URI**: Base64-encoded image data (e.g., `data:image/png;base64,iVBORw0KGg...`)
   - Supported formats: JPG, PNG, WebP, GIF
-  - Local files: Absolute or relative path
-  - Remote images: URL starting with https://
 - `prompt` (required): Analysis instruction or question about the image
 
 **Examples**:
@@ -272,6 +273,12 @@ analyze_image({
 analyze_image({
   image_source: "https://example.com/ui.png",
   prompt: "Analyze the layout and usability issues of this interface"
+})
+
+// Data URI (when client supports it)
+analyze_image({
+  image_source: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA...",
+  prompt: "Extract all text from the image"
 })
 ```
 
@@ -381,6 +388,18 @@ luma-mcp/
 
 Supports JPG, PNG, WebP, GIF. JPG format is recommended for better compression.
 
+### What is a Data URI?
+
+A Data URI is a way to embed image data into a string, formatted as:
+```
+data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA...
+```
+
+**Use cases**:
+- When MCP clients (like Claude Desktop) support it, can directly pass user-pasted images
+- No need to save as temporary files, more efficient
+- Current status: **Server supports**, waiting for client implementation
+
 ### Image size limits?
 
 - Maximum file size: 10MB
@@ -442,6 +461,16 @@ MIT License
 - [MCP Protocol Documentation](https://modelcontextprotocol.io/)
 
 ## Changelog
+
+### [1.1.1] - 2025-11-13
+
+#### Added
+- 🖼️ **Data URI Support**: Accept base64-encoded image data (`data:image/png;base64,...`)
+- 🚀 **Future-ready**: Can directly pass user-pasted images when MCP clients support it
+
+#### Changed
+- Updated tool description to support three input formats: local path, URL, Data URI
+- Added Data URI format validation (MIME type, size limits)
 
 ### [1.1.0] - 2025-11-13
 
