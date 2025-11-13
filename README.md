@@ -1,26 +1,28 @@
 # Luma MCP
 
-基于智谱 GLM-4.5V 的视觉理解 MCP 服务器，为不支持图片理解的 AI 助手提供视觉能力。
+多模型视觉理解 MCP 服务器，为不支持图片理解的 AI 助手提供视觉能力。
 
 [English](./docs/README_EN.md) | 中文
 
 ## 特性
 
+- **多模型支持**: 支持 GLM-4.5V（智谱）和 DeepSeek-OCR（硅基流动）
 - **简单设计**: 单一 `analyze_image` 工具处理所有图片分析任务
 - **智能理解**: 自动识别代码、UI、错误等不同场景
-- **全面支持**: 代码截图、界面设计、错误诊断、通用图片
+- **全面支持**: 代码截图、界面设计、错误诊断、OCR 文字识别
 - **标准 MCP 协议**: 无缝集成 Claude Desktop、Cline 等 MCP 客户端
-- **GLM-4.5V 驱动**: 中文理解优秀，API 性价比高
+- **免费选项**: DeepSeek-OCR 通过硅基流动提供免费调用
 - **URL 支持**: 支持本地文件和远程图片 URL
 - **重试机制**: 内置指数退避重试，提高可靠性
-- **思考模式**: 默认启用深度分析
 
 ## 快速开始
 
 ### 前置要求
 
 - Node.js >= 18.0.0
-- 智谱 AI API Key ([获取地址](https://open.bigmodel.cn/))
+- **选择一种模型**：
+  - **方案 A**: 智谱 AI API Key ([获取地址](https://open.bigmodel.cn/)) - 中文理解优秀
+  - **方案 B**: 硅基流动 API Key ([获取地址](https://cloud.siliconflow.cn/)) - **免费使用**，OCR 能力强
 
 ### 安装
 
@@ -47,7 +49,7 @@ npx luma-mcp
 
 **macOS 配置文件位置**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 
-**使用 npx（推荐）**:
+**方案 A: 使用智谱 GLM-4.5V**:
 
 ```json
 {
@@ -63,7 +65,24 @@ npx luma-mcp
 }
 ```
 
-**本地开发**:
+**方案 B: 使用硅基流动 DeepSeek-OCR（免费）**:
+
+```json
+{
+  "mcpServers": {
+    "luma": {
+      "command": "npx",
+      "args": ["-y", "luma-mcp"],
+      "env": {
+        "MODEL_PROVIDER": "siliconflow",
+        "SILICONFLOW_API_KEY": "your-siliconflow-api-key"
+      }
+    }
+  }
+}
+```
+
+**本地开发（智谱）**:
 
 ```json
 {
@@ -73,6 +92,23 @@ npx luma-mcp
       "args": ["D:\\codes\\Luma_mcp\\build\\index.js"],
       "env": {
         "ZHIPU_API_KEY": "your-zhipu-api-key"
+      }
+    }
+  }
+}
+```
+
+**本地开发（硅基流动）**:
+
+```json
+{
+  "mcpServers": {
+    "luma": {
+      "command": "node",
+      "args": ["D:\\codes\\Luma_mcp\\build\\index.js"],
+      "env": {
+        "MODEL_PROVIDER": "siliconflow",
+        "SILICONFLOW_API_KEY": "your-siliconflow-api-key"
       }
     }
   }
@@ -83,9 +119,9 @@ npx luma-mcp
 
 #### Cline (VSCode)
 
-**使用 npx（推荐）**:
+在项目根目录或 `.vscode/` 目录下创建 `mcp.json`
 
-在项目根目录或 `.vscode/` 目录下创建 `mcp.json`:
+**方案 A: 使用智谱 GLM-4.5V**:
 
 ```json
 {
@@ -101,16 +137,17 @@ npx luma-mcp
 }
 ```
 
-**本地开发**:
+**方案 B: 使用硅基流动 DeepSeek-OCR（免费）**:
 
 ```json
 {
   "mcpServers": {
     "luma": {
-      "command": "node",
-      "args": ["D:\\codes\\Luma_mcp\\build\\index.js"],
+      "command": "npx",
+      "args": ["-y", "luma-mcp"],
       "env": {
-        "ZHIPU_API_KEY": "your-zhipu-api-key"
+        "MODEL_PROVIDER": "siliconflow",
+        "SILICONFLOW_API_KEY": "your-siliconflow-api-key"
       }
     }
   }
@@ -119,8 +156,14 @@ npx luma-mcp
 
 #### Claude Code (命令行)
 
+**使用智谱 GLM-4.5V**:
 ```bash
 claude mcp add -s user luma-mcp --env ZHIPU_API_KEY=your-api-key -- npx -y luma-mcp
+```
+
+**使用硅基流动 DeepSeek-OCR（免费）**:
+```bash
+claude mcp add -s user luma-mcp --env MODEL_PROVIDER=siliconflow --env SILICONFLOW_API_KEY=your-api-key -- npx -y luma-mcp
 ```
 
 #### 其他工具
@@ -164,6 +207,7 @@ Claude: [自动调用 analyze_image 工具]
 
 不需要 MCP 客户端即可测试：
 
+**测试智谱 GLM-4.5V**:
 ```bash
 # 设置 API Key
 export ZHIPU_API_KEY="your-api-key"  # macOS/Linux
@@ -171,7 +215,23 @@ $env:ZHIPU_API_KEY="your-api-key"    # Windows PowerShell
 
 # 测试本地图片
 npm run test:local ./test.png
+```
 
+**测试硅基流动 DeepSeek-OCR**:
+```bash
+# 设置 API Key 和提供商
+export MODEL_PROVIDER=siliconflow
+export SILICONFLOW_API_KEY="your-api-key"  # macOS/Linux
+
+$env:MODEL_PROVIDER="siliconflow"
+$env:SILICONFLOW_API_KEY="your-api-key"    # Windows PowerShell
+
+# 测试本地图片
+npm run test:local ./test.png
+```
+
+**其他测试命令**:
+```bash
 # 测试并提问
 npm run test:local ./code-error.png "这段代码有什么问题？"
 
@@ -217,14 +277,32 @@ analyze_image({
 
 ## 环境变量
 
-| 变量名                  | 必需 | 默认值     | 说明                 |
-|-------------------------|------|------------|----------------------|
-| `ZHIPU_API_KEY`         | 是   | -          | 智谱 AI 的 API 密钥  |
-| `ZHIPU_MODEL`           | 否   | `glm-4.5v` | 使用的模型           |
-| `ZHIPU_MAX_TOKENS`      | 否   | `4096`     | 最大生成 tokens      |
-| `ZHIPU_TEMPERATURE`     | 否   | `0.7`      | 温度参数 (0-1)       |
-| `ZHIPU_TOP_P`           | 否   | `0.7`      | Top-p 参数 (0-1)     |
-| `ZHIPU_ENABLE_THINKING` | 否   | `true`     | 是否启用思考模式 |
+### 通用配置
+
+| 变量名          | 必需 | 默认值      | 说明                                    |
+|------------------|------|-------------|---------------------------------------|
+| `MODEL_PROVIDER` | 否   | `zhipu`     | 模型提供商：`zhipu` 或 `siliconflow` |
+| `MODEL_NAME`     | 否   | 见下文     | 模型名称（自动根据提供商选择）       |
+| `MAX_TOKENS`     | 否   | `4096`      | 最大生成 tokens                        |
+| `TEMPERATURE`    | 否   | `0.7`       | 温度参数 (0-1)                          |
+| `TOP_P`          | 否   | `0.7`       | Top-p 参数 (0-1)                        |
+| `ENABLE_THINKING`| 否   | `false`     | 是否启用思考模式（仅 GLM-4.5V）      |
+
+### 智谱 GLM-4.5V 专用
+
+| 变量名          | 必需               | 默认值      | 说明                 |
+|------------------|---------------------|-------------|----------------------|
+| `ZHIPU_API_KEY`  | 是（使用智谱时） | -           | 智谱 AI 的 API 密钥  |
+
+默认模型：`glm-4.5v`
+
+### 硅基流动 DeepSeek-OCR 专用
+
+| 变量名                | 必需                     | 默认值                       | 说明                     |
+|------------------------|-------------------------|---------------------------------|----------------------------|
+| `SILICONFLOW_API_KEY`  | 是（使用硅基流动时） | -                               | 硅基流动的 API 密钥      |
+
+默认模型：`deepseek-ai/DeepSeek-OCR`
 
 **思考模式说明**:
 - 默认开启，提高图片分析的准确性和详细程度
@@ -264,8 +342,10 @@ npm run test:local <图片路径> [问题]
 luma-mcp/
 ├── src/
 │   ├── index.ts              # MCP 服务器入口
-│   ├── config.ts             # 配置管理
+│   ├── config.ts             # 配置管理（支持多模型）
+│   ├── vision-client.ts      # 视觉模型客户端接口
 │   ├── zhipu-client.ts       # GLM-4.5V API 客户端
+│   ├── siliconflow-client.ts # DeepSeek-OCR API 客户端
 │   ├── image-processor.ts    # 图片处理
 │   ├── prompts.ts            # 提示词模板
 │   └── utils/
@@ -285,9 +365,16 @@ luma-mcp/
 
 ### 如何获取 API Key？
 
+**智谱 GLM-4.5V**:
 1. 访问 [智谱开放平台](https://open.bigmodel.cn/)
 2. 注册/登录账号
 3. 进入控制台创建 API Key
+4. 复制 API Key 到配置文件
+
+**硅基流动 DeepSeek-OCR（免费）**:
+1. 访问 [硅基流动平台](https://cloud.siliconflow.cn/)
+2. 注册/登录账号
+3. 进入 API 管理创建 API Key
 4. 复制 API Key 到配置文件
 
 ### 支持哪些图片格式？
@@ -313,14 +400,30 @@ luma-mcp/
 
 ### 成本如何？
 
-GLM-4.5V 定价请参考[智谱官方定价](https://open.bigmodel.cn/pricing)。
+**硅基流动 DeepSeek-OCR**: **完全免费**，无需付费！
 
-典型场景估算:
+**智谱 GLM-4.5V**: 定价请参考[智谱官方定价](https://open.bigmodel.cn/pricing)。
+
+典型场景估算（GLM-4.5V）:
 - 简单图片理解: 500-1000 tokens
 - 代码截图分析: 1500-2500 tokens
 - 详细 UI 分析: 2000-3000 tokens
 
 启用思考模式会增加约 20-30% tokens。
+
+### 如何选择模型？
+
+| 特性       | GLM-4.5V（智谱） | DeepSeek-OCR（硅基流动） |
+|------------|----------------|------------------------|
+| **费用**   | 收费           | **完全免费**           |
+| **中文理解** | 优秀           | 良好                   |
+| **OCR 能力** | 良好           | **优秀**               |
+| **思考模式** | 支持           | 不支持                 |
+| **适用场景** | 通用图片分析 | OCR、文字识别          |
+
+**推荐**:
+- 需要 OCR 或文字识别：选择 **DeepSeek-OCR**（免费）
+- 需要深度图片理解：选择 **GLM-4.5V**
 
 ## 贡献
 
@@ -334,7 +437,43 @@ MIT License
 
 - [智谱 AI 开放平台](https://open.bigmodel.cn/)
 - [GLM-4.5V 文档](https://docs.bigmodel.cn/cn/guide/models/vlm/glm-4.5v)
+- [硅基流动平台](https://cloud.siliconflow.cn/)
+- [DeepSeek-OCR 文档](https://docs.siliconflow.cn/cn/api-reference/chat-completions/chat-completions)
 - [MCP 协议文档](https://modelcontextprotocol.io/)
+
+## 更新日志
+
+### [1.1.0] - 2025-11-13
+
+#### 新增
+- 🎉 **多模型支持**: 新增硅基流动 DeepSeek-OCR 支持
+- 🆓 **免费选项**: DeepSeek-OCR 通过硅基流动提供完全免费的 OCR 服务
+- 📐 **统一接口**: 创建 VisionClient 接口，支持灵活扩展更多视觉模型
+- ⚙️ **灵活配置**: 通过 `MODEL_PROVIDER` 环境变量轻松切换模型
+
+#### 修改
+- 🔧 环境变量命名优化，支持通用配置（`MODEL_NAME`、`MAX_TOKENS` 等）
+- 📝 更新文档，提供双模型配置说明和选择建议
+- 🏭️ 重构代码结构，提升可维护性
+
+#### 技术细节
+- 新增文件:
+  - `src/vision-client.ts` - 视觉模型客户端统一接口
+  - `src/siliconflow-client.ts` - 硅基流动 API 客户端实现
+  - `.env.example` - 配置示例文件
+- 修改文件:
+  - `src/config.ts` - 支持多提供商配置
+  - `src/zhipu-client.ts` - 实现 VisionClient 接口
+  - `src/index.ts` - 根据配置动态选择客户端
+
+### [1.0.3] - 2025-11-12
+
+- 基于智谱 GLM-4.5V 的视觉理解能力
+- 支持本地文件和远程 URL
+- 内置重试机制
+- 思考模式支持
+
+更多更新历史请查看 [CHANGELOG.md](./CHANGELOG.md)
 
 ## 作者
 

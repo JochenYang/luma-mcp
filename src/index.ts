@@ -14,7 +14,9 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 
 import { loadConfig } from './config.js';
+import type { VisionClient } from './vision-client.js';
 import { ZhipuClient } from './zhipu-client.js';
+import { SiliconFlowClient } from './siliconflow-client.js';
 import { imageToBase64, validateImageSource } from './image-processor.js';
 import { buildAnalysisPrompt } from './prompts.js';
 import { withRetry, createSuccessResponse, createErrorResponse } from './utils/helpers.js';
@@ -27,7 +29,16 @@ async function createServer() {
 
   // 加载配置
   const config = loadConfig();
-  const zhipuClient = new ZhipuClient(config);
+  
+  // 根据配置选择模型客户端
+  const visionClient: VisionClient = config.provider === 'siliconflow'
+    ? new SiliconFlowClient(config)
+    : new ZhipuClient(config);
+  
+  logger.info('Vision client initialized', { 
+    provider: config.provider, 
+    model: visionClient.getModelName() 
+  });
 
   // 创建服务器 - 使用 McpServer
   const server = new McpServer(
@@ -51,11 +62,14 @@ async function createServer() {
       // 2. 处理图片（读取或返回URL）
       const imageDataUrl = await imageToBase64(imageSource);
 
-      // 3. 构建提示词（直接使用prompt）
-      const fullPrompt = buildAnalysisPrompt(prompt);
+      // 3. 构建提示词
+      // DeepSeek-OCR 需要简洁的 prompt，不支持复杂格式化
+      const fullPrompt = config.provider === 'siliconflow' 
+        ? prompt  // DeepSeek-OCR: 直接使用原始 prompt
+        : buildAnalysisPrompt(prompt);  // GLM-4.5V: 使用结构化 prompt
 
-      // 4. 调用 GLM-4.5V 分析图片
-      return await zhipuClient.analyzeImage(imageDataUrl, fullPrompt);
+      // 4. 调用视觉模型分析图片
+      return await visionClient.analyzeImage(imageDataUrl, fullPrompt);
     },
     2, // 最多重试2次
     1000 // 初始延补1秒
@@ -64,7 +78,7 @@ async function createServer() {
   // 注册工具 - 使用 McpServer.tool() API
   server.tool(
     'analyze_image',
-    `使用智谱GLM-4.5V视觉模型分析图片内容。
+    `使用视觉模型分析图片内容。支持 GLM-4.5V（智谱）和 DeepSeek-OCR（硅基流动）。
 
 **何时自动调用此工具**：
 1. 用户提供了图片文件路径（包括临时路径、相对路径、绝对路径）

@@ -4,7 +4,9 @@
  */
 
 import { loadConfig } from '../src/config.js';
+import type { VisionClient } from '../src/vision-client.js';
 import { ZhipuClient } from '../src/zhipu-client.js';
+import { SiliconFlowClient } from '../src/siliconflow-client.js';
 import { imageToBase64, validateImageSource } from '../src/image-processor.js';
 import { buildAnalysisPrompt } from '../src/prompts.js';
 import { logger } from '../src/utils/logger.js';
@@ -18,7 +20,7 @@ async function testImageAnalysis(imagePath: string, question?: string) {
     // 1. 加载配置
     console.log('📝 加载配置...');
     const config = loadConfig();
-    console.log(`✅ 配置加载成功: 模型 ${config.model}\n`);
+    console.log(`✅ 配置加载成功: 提供商 ${config.provider}, 模型 ${config.model}\n`);
 
     // 2. 验证图片
     console.log('🔍 验证图片来源...');
@@ -33,12 +35,19 @@ async function testImageAnalysis(imagePath: string, question?: string) {
 
     // 4. 构建提示词
     console.log('💬 构建提示词...');
-    const prompt = buildAnalysisPrompt(question);
+    // DeepSeek-OCR 需要简洁 prompt
+    const prompt = config.provider === 'siliconflow'
+      ? (question || '请详细分析这张图片的内容')
+      : buildAnalysisPrompt(question);
     console.log(`✅ 提示词: ${question || '通用描述'}\n`);
 
-    // 5. 调用API
-    console.log('🤖 调用 GLM-4.5V API...');
-    const client = new ZhipuClient(config);
+    // 5. 创建客户端并调用API
+    const client: VisionClient = config.provider === 'siliconflow'
+      ? new SiliconFlowClient(config)
+      : new ZhipuClient(config);
+    
+    const modelName = config.provider === 'siliconflow' ? 'DeepSeek-OCR' : 'GLM-4.5V';
+    console.log(`🤖 调用 ${modelName} API...`);
     const result = await client.analyzeImage(imageDataUrl, prompt);
 
     // 6. 显示结果
@@ -76,8 +85,12 @@ if (args.length === 0) {
   npm run test:local https://example.com/image.jpg
 
 环境变量:
-  ZHIPU_API_KEY=your-api-key  # 必需
-  ZHIPU_MODEL=glm-4.5v        # 可选
+  # 使用智谱 GLM-4.5V
+  ZHIPU_API_KEY=your-api-key
+  
+  # 使用硅基流动 DeepSeek-OCR
+  MODEL_PROVIDER=siliconflow
+  SILICONFLOW_API_KEY=your-api-key
   `);
   process.exit(1);
 }
