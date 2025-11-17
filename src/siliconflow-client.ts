@@ -52,11 +52,17 @@ interface SiliconFlowResponse {
  * 硅基流动 API 客户端
  */
 export class SiliconFlowClient implements VisionClient {
-  private config: LumaConfig;
+  private apiKey: string;
+  private model: string;
+  private maxTokens: number;
+  private temperature: number;
   private apiEndpoint = 'https://api.siliconflow.cn/v1/chat/completions';
 
-  constructor(config: LumaConfig) {
-    this.config = config;
+  constructor(apiKey: string, model: string = 'deepseek-ai/DeepSeek-OCR', maxTokens: number = 4096, temperature: number = 0.7) {
+    this.apiKey = apiKey;
+    this.model = model;
+    this.maxTokens = maxTokens;
+    this.temperature = temperature;
   }
 
   /**
@@ -64,7 +70,7 @@ export class SiliconFlowClient implements VisionClient {
    */
   async analyzeImage(imageDataUrl: string, prompt: string, enableThinking?: boolean): Promise<string> {
     const requestBody: SiliconFlowRequest = {
-      model: this.config.model,
+      model: this.model,
       messages: [
         {
           role: 'user',
@@ -82,14 +88,13 @@ export class SiliconFlowClient implements VisionClient {
           ],
         },
       ],
-      temperature: this.config.temperature,
-      max_tokens: this.config.maxTokens,
-      top_p: this.config.topP,
+      temperature: this.temperature,
+      max_tokens: this.maxTokens,
       stream: false,
     };
 
     logger.info('Calling SiliconFlow DeepSeek-OCR API', { 
-      model: this.config.model,
+      model: this.model,
     });
 
     try {
@@ -98,7 +103,7 @@ export class SiliconFlowClient implements VisionClient {
         requestBody,
         {
           headers: {
-            'Authorization': `Bearer ${this.config.apiKey}`,
+            'Authorization': `Bearer ${this.apiKey}`,
             'Content-Type': 'application/json',
           },
           timeout: 60000, // 60秒超时
@@ -136,6 +141,6 @@ export class SiliconFlowClient implements VisionClient {
    * 获取模型名称
    */
   getModelName(): string {
-    return this.config.model;
+    return `DeepSeek (${this.model})`;
   }
 }

@@ -6,12 +6,14 @@ English | [中文](../README.md)
 
 ## Features
 
-- **Multi-Model Support**: Supports GLM-4.5V (Zhipu) and DeepSeek-OCR (SiliconFlow)
+- **Multi-Model Support**: Supports three vision models
+  - GLM-4.5V (Zhipu) - Paid, excellent Chinese understanding
+  - DeepSeek-OCR (SiliconFlow) - **Free to use**, strong OCR capability
+  - Qwen3-VL-Flash (Aliyun) - Paid, fast and cost-effective, supports thinking mode
 - **Simple Design**: Single `analyze_image` tool handles all image analysis tasks
 - **Smart Understanding**: Automatically recognizes different scenarios (code, UI, errors, etc.)
 - **Comprehensive Support**: Code screenshots, UI design, error diagnosis, OCR text recognition
 - **Standard MCP Protocol**: Seamless integration with Claude Desktop, Cline, and other MCP clients
-- **Free Option**: DeepSeek-OCR via SiliconFlow is completely free
 - **URL Support**: Handles both local files and remote image URLs
 - **Retry Mechanism**: Built-in exponential backoff retry for reliability
 
@@ -23,6 +25,7 @@ English | [中文](../README.md)
 - **Choose one model**:
   - **Option A**: Zhipu AI API Key ([Get it here](https://open.bigmodel.cn/)) - Excellent Chinese understanding
   - **Option B**: SiliconFlow API Key ([Get it here](https://cloud.siliconflow.cn/)) - **Free to use**, Strong OCR capability
+  - **Option C**: Aliyun Bailian API Key ([Get it here](https://bailian.console.aliyun.com/)) - Fast and cost-effective, supports thinking mode
 
 ### Installation
 
@@ -76,6 +79,23 @@ npx luma-mcp
       "env": {
         "MODEL_PROVIDER": "siliconflow",
         "SILICONFLOW_API_KEY": "your-siliconflow-api-key"
+      }
+    }
+  }
+}
+```
+
+**Option C: Using Aliyun Qwen3-VL-Flash**:
+
+```json
+{
+  "mcpServers": {
+    "luma": {
+      "command": "npx",
+      "args": ["-y", "luma-mcp"],
+      "env": {
+        "MODEL_PROVIDER": "qwen",
+        "DASHSCOPE_API_KEY": "your-dashscope-api-key"
       }
     }
   }
@@ -154,6 +174,23 @@ Create `mcp.json` in project root or `.vscode/` directory
 }
 ```
 
+**Option C: Using Aliyun Qwen3-VL-Flash**:
+
+```json
+{
+  "mcpServers": {
+    "luma": {
+      "command": "npx",
+      "args": ["-y", "luma-mcp"],
+      "env": {
+        "MODEL_PROVIDER": "qwen",
+        "DASHSCOPE_API_KEY": "your-dashscope-api-key"
+      }
+    }
+  }
+}
+```
+
 #### Claude Code (CLI)
 
 **Using Zhipu GLM-4.5V**:
@@ -164,6 +201,11 @@ claude mcp add -s user luma-mcp --env ZHIPU_API_KEY=your-api-key -- npx -y luma-
 **Using SiliconFlow DeepSeek-OCR (Free)**:
 ```bash
 claude mcp add -s user luma-mcp --env MODEL_PROVIDER=siliconflow --env SILICONFLOW_API_KEY=your-api-key -- npx -y luma-mcp
+```
+
+**Using Aliyun Qwen3-VL-Flash**:
+```bash
+claude mcp add -s user luma-mcp --env MODEL_PROVIDER=qwen --env DASHSCOPE_API_KEY=your-api-key -- npx -y luma-mcp
 ```
 
 #### Other Tools

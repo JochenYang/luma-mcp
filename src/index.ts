@@ -17,6 +17,7 @@ import { loadConfig } from './config.js';
 import type { VisionClient } from './vision-client.js';
 import { ZhipuClient } from './zhipu-client.js';
 import { SiliconFlowClient } from './siliconflow-client.js';
+import { QwenClient } from './qwen-client.js';
 import { imageToBase64, validateImageSource } from './image-processor.js';
 import { buildAnalysisPrompt } from './prompts.js';
 import { withRetry, createSuccessResponse, createErrorResponse } from './utils/helpers.js';
@@ -31,9 +32,31 @@ async function createServer() {
   const config = loadConfig();
   
   // 根据配置选择模型客户端
-  const visionClient: VisionClient = config.provider === 'siliconflow'
-    ? new SiliconFlowClient(config)
-    : new ZhipuClient(config);
+  let visionClient: VisionClient;
+  
+  if (config.provider === 'siliconflow') {
+    visionClient = new SiliconFlowClient(
+      config.apiKey,
+      config.model,
+      config.maxTokens,
+      config.temperature
+    );
+  } else if (config.provider === 'qwen') {
+    visionClient = new QwenClient(
+      config.apiKey,
+      config.model,
+      config.maxTokens,
+      config.temperature
+    );
+  } else {
+    visionClient = new ZhipuClient(
+      config.apiKey,
+      config.model,
+      config.maxTokens,
+      config.temperature,
+      config.topP
+    );
+  }
   
   logger.info('Vision client initialized', { 
     provider: config.provider, 
@@ -64,9 +87,10 @@ async function createServer() {
 
       // 3. 构建提示词
       // DeepSeek-OCR 需要简洁的 prompt，不支持复杂格式化
+      // Qwen/GLM 使用结构化 prompt
       const fullPrompt = config.provider === 'siliconflow' 
         ? prompt  // DeepSeek-OCR: 直接使用原始 prompt
-        : buildAnalysisPrompt(prompt);  // GLM-4.5V: 使用结构化 prompt
+        : buildAnalysisPrompt(prompt);  // Qwen/GLM: 使用结构化 prompt
 
       // 4. 调用视觉模型分析图片
       return await visionClient.analyzeImage(imageDataUrl, fullPrompt);
@@ -78,7 +102,10 @@ async function createServer() {
   // 注册工具 - 使用 McpServer.tool() API
   server.tool(
     'analyze_image',
-    `使用视觉模型分析图片内容。支持 GLM-4.5V（智谱）和 DeepSeek-OCR（硅基流动）。
+    `使用视觉模型分析图片内容。支持三个视觉模型：
+- GLM-4.5V（智谱清言）- 付费，中文理解优秀
+- DeepSeek-OCR（硅基流动）- 免费，OCR能力强
+- Qwen3-VL-Flash（阿里云通义千问）- 付费，速度快成本低，支持思考模式
 
 **何时自动调用此工具**：
 1. 用户提供了图片文件路径（包括临时路径、相对路径、绝对路径）

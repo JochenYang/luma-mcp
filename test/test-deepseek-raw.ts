@@ -9,7 +9,13 @@ import * as path from 'path';
 async function testDeepSeekOCR(imagePath: string) {
   console.log('\n🧪 测试 DeepSeek-OCR API（原始调用）\n');
 
-  const apiKey = 'your-siliconflow-api-key';
+  const apiKey = process.env.SILICONFLOW_API_KEY;
+  
+  if (!apiKey) {
+    console.error('❌ 错误: 需要设置 SILICONFLOW_API_KEY 环境变量');
+    console.error('示例: $env:SILICONFLOW_API_KEY="your-api-key"');
+    process.exit(1);
+  }
   
   // 读取图片并转为 base64
   const imageBuffer = fs.readFileSync(imagePath);

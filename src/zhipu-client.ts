@@ -52,11 +52,19 @@ interface ZhipuResponse {
  * 智谱 API 客户端
  */
 export class ZhipuClient implements VisionClient {
-  private config: LumaConfig;
+  private apiKey: string;
+  private model: string;
+  private maxTokens: number;
+  private temperature: number;
+  private topP: number;
   private apiEndpoint = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
 
-  constructor(config: LumaConfig) {
-    this.config = config;
+  constructor(apiKey: string, model: string = 'glm-4.5v', maxTokens: number = 4096, temperature: number = 0.7, topP: number = 0.7) {
+    this.apiKey = apiKey;
+    this.model = model;
+    this.maxTokens = maxTokens;
+    this.temperature = temperature;
+    this.topP = topP;
   }
 
   /**
@@ -64,7 +72,7 @@ export class ZhipuClient implements VisionClient {
    */
   async analyzeImage(imageDataUrl: string, prompt: string, enableThinking?: boolean): Promise<string> {
     const requestBody: ZhipuRequest = {
-      model: this.config.model,
+      model: this.model,
       messages: [
         {
           role: 'user',
@@ -82,19 +90,19 @@ export class ZhipuClient implements VisionClient {
           ],
         },
       ],
-      temperature: this.config.temperature,
-      max_tokens: this.config.maxTokens,
-      top_p: this.config.topP,
+      temperature: this.temperature,
+      max_tokens: this.maxTokens,
+      top_p: this.topP,
       thinking: { type: 'enabled' }, // 默认启用思考模式，提高分析准确性
     };
 
     // 允许显式禁用 thinking（如需要更快速度）
-    if (this.config.enableThinking === false || enableThinking === false) {
+    if (enableThinking === false) {
       delete requestBody.thinking;
     }
 
     logger.info('Calling GLM-4.5V API', { 
-      model: this.config.model,
+      model: this.model,
       thinking: !!requestBody.thinking 
     });
 
@@ -104,7 +112,7 @@ export class ZhipuClient implements VisionClient {
         requestBody,
         {
           headers: {
-            'Authorization': `Bearer ${this.config.apiKey}`,
+            'Authorization': `Bearer ${this.apiKey}`,
             'Content-Type': 'application/json',
           },
           timeout: 60000, // 60秒超时
@@ -142,6 +150,6 @@ export class ZhipuClient implements VisionClient {
    * 获取模型名称
    */
   getModelName(): string {
-    return this.config.model;
+    return `GLM (${this.model})`;
   }
 }

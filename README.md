@@ -6,12 +6,14 @@
 
 ## 特性
 
-- **多模型支持**: 支持 GLM-4.5V（智谱）和 DeepSeek-OCR（硅基流动）
+- **多模型支持**: 支持三个视觉模型
+  - GLM-4.5V（智谱清言）- 付费，中文理解优秀
+  - DeepSeek-OCR（硅基流动）- **免费使用**，OCR能力强
+  - Qwen3-VL-Flash（阿里云通义千问）- 付费，速度快成本低，支持思考模式
 - **简单设计**: 单一 `analyze_image` 工具处理所有图片分析任务
 - **智能理解**: 自动识别代码、UI、错误等不同场景
 - **全面支持**: 代码截图、界面设计、错误诊断、OCR 文字识别
 - **标准 MCP 协议**: 无缝集成 Claude Desktop、Cline 等 MCP 客户端
-- **免费选项**: DeepSeek-OCR 通过硅基流动提供免费调用
 - **URL 支持**: 支持本地文件和远程图片 URL
 - **重试机制**: 内置指数退避重试，提高可靠性
 
@@ -23,6 +25,7 @@
 - **选择一种模型**：
   - **方案 A**: 智谱 AI API Key ([获取地址](https://open.bigmodel.cn/)) - 中文理解优秀
   - **方案 B**: 硅基流动 API Key ([获取地址](https://cloud.siliconflow.cn/)) - **免费使用**，OCR 能力强
+  - **方案 C**: 阿里云百炼 API Key ([获取地址](https://bailian.console.aliyun.com/)) - 速度快成本低，支持思考模式
 
 ### 安装
 
@@ -76,6 +79,23 @@ npx luma-mcp
       "env": {
         "MODEL_PROVIDER": "siliconflow",
         "SILICONFLOW_API_KEY": "your-siliconflow-api-key"
+      }
+    }
+  }
+}
+```
+
+**方案 C: 使用阿里云通义千问 Qwen3-VL-Flash**:
+
+```json
+{
+  "mcpServers": {
+    "luma": {
+      "command": "npx",
+      "args": ["-y", "luma-mcp"],
+      "env": {
+        "MODEL_PROVIDER": "qwen",
+        "DASHSCOPE_API_KEY": "your-dashscope-api-key"
       }
     }
   }
@@ -154,6 +174,23 @@ npx luma-mcp
 }
 ```
 
+**方案 C: 使用阿里云通义千问 Qwen3-VL-Flash**:
+
+```json
+{
+  "mcpServers": {
+    "luma": {
+      "command": "npx",
+      "args": ["-y", "luma-mcp"],
+      "env": {
+        "MODEL_PROVIDER": "qwen",
+        "DASHSCOPE_API_KEY": "your-dashscope-api-key"
+      }
+    }
+  }
+}
+```
+
 #### Claude Code (命令行)
 
 **使用智谱 GLM-4.5V**:
@@ -164,6 +201,11 @@ claude mcp add -s user luma-mcp --env ZHIPU_API_KEY=your-api-key -- npx -y luma-
 **使用硅基流动 DeepSeek-OCR（免费）**:
 ```bash
 claude mcp add -s user luma-mcp --env MODEL_PROVIDER=siliconflow --env SILICONFLOW_API_KEY=your-api-key -- npx -y luma-mcp
+```
+
+**使用阿里云通义千问 Qwen3-VL-Flash**:
+```bash
+claude mcp add -s user luma-mcp --env MODEL_PROVIDER=qwen --env DASHSCOPE_API_KEY=your-api-key -- npx -y luma-mcp
 ```
 
 #### 其他工具

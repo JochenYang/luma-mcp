@@ -3,7 +3,7 @@
  * 从环境变量读取配置
  */
 
-export type ModelProvider = 'zhipu' | 'siliconflow';
+export type ModelProvider = 'zhipu' | 'siliconflow' | 'qwen';
 
 export interface LumaConfig {
   provider: ModelProvider;
@@ -32,6 +32,13 @@ export function loadConfig(): LumaConfig {
     
     if (!apiKey) {
       throw new Error('SILICONFLOW_API_KEY environment variable is required when using SiliconFlow provider');
+    }
+  } else if (provider === 'qwen') {
+    apiKey = process.env.DASHSCOPE_API_KEY;
+    defaultModel = 'qwen3-vl-flash';
+    
+    if (!apiKey) {
+      throw new Error('DASHSCOPE_API_KEY environment variable is required when using Qwen provider');
     }
   } else {
     apiKey = process.env.ZHIPU_API_KEY;
