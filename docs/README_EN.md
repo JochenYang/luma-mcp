@@ -268,6 +268,19 @@ $env:SILICONFLOW_API_KEY="your-api-key"    # Windows PowerShell
 npm run test:local ./test.png
 ```
 
+**Test Aliyun Qwen3-VL-Flash**:
+```bash
+# Set API Key and provider
+export MODEL_PROVIDER=qwen
+export DASHSCOPE_API_KEY="your-api-key"  # macOS/Linux
+
+$env:MODEL_PROVIDER="qwen"
+$env:DASHSCOPE_API_KEY="your-api-key"    # Windows PowerShell
+
+# Test local image
+npm run test:local ./test.png
+```
+
 **Other test commands**:
 ```bash
 # Test with question
@@ -430,6 +443,12 @@ luma-mcp/
 3. Go to API management and create API Key
 4. Copy API Key to configuration file
 
+**Aliyun Qwen3-VL-Flash**:
+1. Visit [Aliyun Bailian Platform](https://bailian.console.aliyun.com/)
+2. Register/Login
+3. Go to API-KEY management and create API Key
+4. Copy API Key to configuration file
+
 ### What image formats are supported?
 
 Supports JPG, PNG, WebP, GIF. JPG format is recommended for better compression.
@@ -459,7 +478,7 @@ Log file location: `~/.luma-mcp/luma-mcp-YYYY-MM-DD.log`
 ### What if API call fails?
 
 1. Check if API Key is correct
-2. Confirm sufficient balance in Zhipu account
+2. Confirm sufficient balance in your account (Zhipu/Aliyun)
 3. Check network connection
 4. View log file for detailed error information
 
@@ -469,25 +488,29 @@ Log file location: `~/.luma-mcp/luma-mcp-YYYY-MM-DD.log`
 
 **Zhipu GLM-4.5V**: For pricing, refer to [Zhipu Official Pricing](https://open.bigmodel.cn/pricing).
 
-Typical scenario estimates (GLM-4.5V):
+**Aliyun Qwen3-VL-Flash**: For pricing, refer to [Aliyun Bailian Pricing](https://help.aliyun.com/zh/model-studio/getting-started/models).
+
+Typical scenario estimates:
 - Simple image understanding: 500-1000 tokens
 - Code screenshot analysis: 1500-2500 tokens
 - Detailed UI analysis: 2000-3000 tokens
 
-Enabling thinking mode increases tokens by approximately 20-30%.
+Enabling thinking mode (GLM-4.5V/Qwen3-VL-Flash) increases tokens by approximately 20-30%.
 
 ### How to choose a model?
 
-| Feature          | GLM-4.5V (Zhipu)  | DeepSeek-OCR (SiliconFlow) |
-|------------------|-------------------|--------------------------|
-| **Cost**         | Paid              | **Completely Free**      |
-| **Chinese**      | Excellent         | Good                     |
-| **OCR**          | Good              | **Excellent**            |
-| **Thinking Mode**| Supported         | Not supported            |
-| **Use Cases**    | General analysis  | OCR, Text recognition    |
+| Feature          | GLM-4.5V (Zhipu)  | DeepSeek-OCR (SiliconFlow) | Qwen3-VL-Flash (Aliyun) |
+|------------------|-------------------|----------------------------|-------------------------|
+| **Cost**         | Paid              | **Completely Free**        | Paid                    |
+| **Chinese**      | Excellent         | Good                       | **Excellent**           |
+| **OCR**          | Good              | **Excellent**              | Excellent               |
+| **Thinking Mode**| Supported         | Not supported              | Supported               |
+| **Speed/Cost**   | Medium            | Free                       | **Fast/Low Cost**       |
+| **Use Cases**    | General analysis  | OCR, Text recognition      | Fast analysis, 3D positioning |
 
 **Recommendations**:
 - Need OCR/text recognition → **DeepSeek-OCR** (free)
+- Need fast and cost-effective analysis → **Qwen3-VL-Flash**
 - Need deep image understanding → **GLM-4.5V**
 
 ## Contributing
@@ -504,6 +527,8 @@ MIT License
 - [GLM-4.5V Documentation](https://docs.bigmodel.cn/cn/guide/models/vlm/glm-4.5v)
 - [SiliconFlow Platform](https://cloud.siliconflow.cn/)
 - [DeepSeek-OCR Documentation](https://docs.siliconflow.cn/cn/api-reference/chat-completions/chat-completions)
+- [Aliyun Bailian Platform](https://bailian.console.aliyun.com/)
+- [Qwen3-VL Documentation](https://help.aliyun.com/zh/model-studio/getting-started/models)
 - [MCP Protocol Documentation](https://modelcontextprotocol.io/)
 
 ## Changelog

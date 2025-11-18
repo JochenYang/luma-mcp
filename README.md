@@ -268,6 +268,19 @@ $env:SILICONFLOW_API_KEY="your-api-key"    # Windows PowerShell
 npm run test:local ./test.png
 ```
 
+**测试阿里云通义千问 Qwen3-VL-Flash**:
+```bash
+# 设置 API Key 和提供商
+export MODEL_PROVIDER=qwen
+export DASHSCOPE_API_KEY="your-api-key"  # macOS/Linux
+
+$env:MODEL_PROVIDER="qwen"
+$env:DASHSCOPE_API_KEY="your-api-key"    # Windows PowerShell
+
+# 测试本地图片
+npm run test:local ./test.png
+```
+
 **其他测试命令**:
 ```bash
 # 测试并提问
@@ -430,6 +443,12 @@ luma-mcp/
 3. 进入 API 管理创建 API Key
 4. 复制 API Key 到配置文件
 
+**阿里云通义千问 Qwen3-VL-Flash**:
+1. 访问 [阿里云百炼平台](https://bailian.console.aliyun.com/)
+2. 注册/登录账号
+3. 进入 API-KEY 管理创建 API Key
+4. 复制 API Key 到配置文件
+
 ### 支持哪些图片格式？
 
 支持 JPG、PNG、WebP、GIF 格式。建议使用 JPG 格式以获得更好的压缩率。
@@ -459,7 +478,7 @@ data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA...
 ### API 调用失败怎么办？
 
 1. 检查 API Key 是否正确
-2. 确认智谱账户余额充足
+2. 确认账户余额充足（智谱/阿里云）
 3. 检查网络连接
 4. 查看日志文件了解详细错误信息
 
@@ -469,25 +488,29 @@ data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA...
 
 **智谱 GLM-4.5V**: 定价请参考[智谱官方定价](https://open.bigmodel.cn/pricing)。
 
-典型场景估算（GLM-4.5V）:
+**阿里云通义千问 Qwen3-VL-Flash**: 定价请参考[阿里云百炼定价](https://help.aliyun.com/zh/model-studio/getting-started/models)。
+
+典型场景估算：
 - 简单图片理解: 500-1000 tokens
 - 代码截图分析: 1500-2500 tokens
 - 详细 UI 分析: 2000-3000 tokens
 
-启用思考模式会增加约 20-30% tokens。
+启用思考模式（GLM-4.5V/Qwen3-VL-Flash）会增加约 20-30% tokens。
 
 ### 如何选择模型？
 
-| 特性         | GLM-4.5V（智谱） | DeepSeek-OCR（硅基流动） |
-|--------------|----------------|------------------------|
-| **费用**     | 收费           | **完全免费**           |
-| **中文理解** | 优秀           | 良好                   |
-| **OCR 能力** | 良好           | **优秀**               |
-| **思考模式** | 支持           | 不支持                 |
-| **适用场景** | 通用图片分析   | OCR、文字识别           |
+| 特性         | GLM-4.5V（智谱） | DeepSeek-OCR（硅基流动） | Qwen3-VL-Flash（阿里云） |
+|--------------|----------------|------------------------|------------------------|
+| **费用**     | 收费           | **完全免费**           | 收费                   |
+| **中文理解** | 优秀           | 良好                   | **优秀**               |
+| **OCR 能力** | 良好           | **优秀**               | 优秀                   |
+| **思考模式** | 支持           | 不支持                 | 支持                   |
+| **速度/成本** | 中等           | 免费                   | **快速/低成本**         |
+| **适用场景** | 通用图片分析   | OCR、文字识别           | 快速分析、3D定位        |
 
 **推荐**:
 - 需要 OCR 或文字识别：选择 **DeepSeek-OCR**（免费）
+- 需要快速低成本分析：选择 **Qwen3-VL-Flash**
 - 需要深度图片理解：选择 **GLM-4.5V**
 
 ## 贡献
@@ -504,6 +527,8 @@ MIT License
 - [GLM-4.5V 文档](https://docs.bigmodel.cn/cn/guide/models/vlm/glm-4.5v)
 - [硅基流动平台](https://cloud.siliconflow.cn/)
 - [DeepSeek-OCR 文档](https://docs.siliconflow.cn/cn/api-reference/chat-completions/chat-completions)
+- [阿里云百炼平台](https://bailian.console.aliyun.com/)
+- [Qwen3-VL 文档](https://help.aliyun.com/zh/model-studio/getting-started/models)
 - [MCP 协议文档](https://modelcontextprotocol.io/)
 
 ## 更新日志
