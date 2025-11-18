@@ -48,10 +48,6 @@ npx luma-mcp
 
 #### Claude Desktop
 
-**Windows config location**: `%APPDATA%\Claude\claude_desktop_config.json`
-
-**macOS config location**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-
 **Option A: Using Zhipu GLM-4.5V**:
 
 ```json
@@ -328,14 +324,14 @@ analyze_image({
 
 ### General Configuration
 
-| Variable          | Required | Default   | Description                                       |
-|-------------------|----------|-----------|---------------------------------------------------|
-| `MODEL_PROVIDER`  | No       | `zhipu`   | Model provider: `zhipu` or `siliconflow`          |
-| `MODEL_NAME`      | No       | See below | Model name (auto-selected based on provider)      |
-| `MAX_TOKENS`      | No       | `4096`    | Maximum tokens to generate                        |
-| `TEMPERATURE`     | No       | `0.7`     | Temperature (0-1)                                 |
-| `TOP_P`           | No       | `0.7`     | Top-p parameter (0-1)                             |
-| `ENABLE_THINKING` | No       | `false`   | Enable thinking mode (GLM-4.5V only)              |
+| Variable          | Required | Default   | Description                                                  |
+|-------------------|----------|-----------|--------------------------------------------------------------|
+| `MODEL_PROVIDER`  | No       | `zhipu`   | Model provider: `zhipu`, `siliconflow`, or `qwen`            |
+| `MODEL_NAME`      | No       | See below | Model name (auto-selected based on provider)                 |
+| `MAX_TOKENS`      | No       | `4096`    | Maximum tokens to generate                                   |
+| `TEMPERATURE`     | No       | `0.7`     | Temperature (0-1)                                            |
+| `TOP_P`           | No       | `0.7`     | Top-p parameter (0-1)                                        |
+| `ENABLE_THINKING` | No       | `false`   | Enable thinking mode (GLM-4.5V and Qwen3-VL-Flash)           |
 
 ### Zhipu GLM-4.5V Specific
 
@@ -352,6 +348,14 @@ Default model: `glm-4.5v`
 | `SILICONFLOW_API_KEY`  | Yes (when using SiliconFlow)  | -                            | SiliconFlow API key    |
 
 Default model: `deepseek-ai/DeepSeek-OCR`
+
+### Aliyun Qwen3-VL-Flash Specific
+
+| Variable              | Required                   | Default  | Description                  |
+|-----------------------|----------------------------|----------|------------------------------|
+| `DASHSCOPE_API_KEY`   | Yes (when using Qwen)      | -        | Aliyun Bailian API key       |
+
+Default model: `qwen3-vl-flash`
 
 **Thinking Mode**:
 - Enabled by default for better accuracy and detailed analysis
@@ -503,46 +507,6 @@ MIT License
 - [MCP Protocol Documentation](https://modelcontextprotocol.io/)
 
 ## Changelog
-
-### [1.1.1] - 2025-11-13
-
-#### Added
-- 🖼️ **Data URI Support**: Accept base64-encoded image data (`data:image/png;base64,...`)
-- 🚀 **Future-ready**: Can directly pass user-pasted images when MCP clients support it
-
-#### Changed
-- Updated tool description to support three input formats: local path, URL, Data URI
-- Added Data URI format validation (MIME type, size limits)
-
-### [1.1.0] - 2025-11-13
-
-#### Added
-- 🎉 **Multi-Model Support**: Added SiliconFlow DeepSeek-OCR support
-- 🆓 **Free Option**: DeepSeek-OCR via SiliconFlow is completely free
-- 📐 **Unified Interface**: Created VisionClient interface for flexible model extension
-- ⚙️ **Flexible Configuration**: Easy model switching via `MODEL_PROVIDER` environment variable
-
-#### Changed
-- 🔧 Optimized environment variable naming, supports general configuration
-- 📝 Updated documentation with dual-model configuration and recommendations
-- 🏭️ Refactored code structure for better maintainability
-
-#### Technical Details
-- New files:
-  - `src/vision-client.ts` - Unified vision model client interface
-  - `src/siliconflow-client.ts` - SiliconFlow API client implementation
-  - `.env.example` - Configuration example file
-- Modified files:
-  - `src/config.ts` - Multi-provider configuration support
-  - `src/zhipu-client.ts` - Implements VisionClient interface
-  - `src/index.ts` - Dynamic client selection based on configuration
-
-### [1.0.3] - 2025-11-12
-
-- Vision understanding powered by Zhipu GLM-4.5V
-- Support for local files and remote URLs
-- Built-in retry mechanism
-- Thinking mode support
 
 For more update history, see [CHANGELOG.md](../CHANGELOG.md)
 
