@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.1] - 2025-11-18
+
+### Changed
+- 📝 **文档优化**: 精简 README，移除冲余配置文件路径说明
+- 📝 **更新日志简化**: 将 README 中的详细更新日志替换为 CHANGELOG.md 链接
+- ✨ **Qwen 测试示例**: 添加 Qwen3-VL-Flash 本地测试命令
+- 💰 **定价信息**: 添加阿里云通义千问定价参考链接
+- 📋 **模型对比**: 更新模型选择表，完善 Qwen3-VL-Flash 信息
+- 🔗 **API Key 获取**: 添加阿里云百炼 API Key 获取指南
+- 📚 **相关链接**: 新增阿里云百炼平台和 Qwen3-VL 文档链接
+- 🐛 **错误信息**: 优化 API 调用失败排查提示，包含阿里云账户
+
+### Fixed
+- 🐛 **描述修正**: 修正 package.json 中模型名称为 qwen3-vl-flash
+- 📝 **注释精简**: 简化 prompts.ts 注释头
+
 ## [1.2.0] - 2025-11-17
 
 ### Added
