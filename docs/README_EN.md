@@ -412,13 +412,17 @@ luma-mcp/
 │   ├── vision-client.ts      # Vision model client interface
 │   ├── zhipu-client.ts       # GLM-4.5V API client
 │   ├── siliconflow-client.ts # DeepSeek-OCR API client
+│   ├── qwen-client.ts        # Qwen3-VL API client
 │   ├── image-processor.ts    # Image processing
 │   ├── prompts.ts            # Prompt templates
 │   └── utils/
 │       ├── logger.ts         # Logging utilities
 │       └── helpers.ts        # Helper functions
 ├── test/
-│   └── test-local.ts         # Local testing script
+│   ├── test-local.ts         # Local testing script
+│   ├── test-qwen.ts          # Qwen testing script
+│   ├── test-deepseek-raw.ts  # DeepSeek raw testing script
+│   └── test-data-uri.ts      # Data URI testing script
 ├── docs/
 │   ├── design.md             # Design documentation
 │   ├── installation.md       # Installation guide

@@ -412,13 +412,17 @@ luma-mcp/
 │   ├── vision-client.ts      # 视觉模型客户端接口
 │   ├── zhipu-client.ts       # GLM-4.5V API 客户端
 │   ├── siliconflow-client.ts # DeepSeek-OCR API 客户端
+│   ├── qwen-client.ts        # Qwen3-VL API 客户端
 │   ├── image-processor.ts    # 图片处理
 │   ├── prompts.ts            # 提示词模板
 │   └── utils/
 │       ├── logger.ts         # 日志工具
 │       └── helpers.ts        # 工具函数
 ├── test/
-│   └── test-local.ts         # 本地测试脚本
+│   ├── test-local.ts         # 本地测试脚本
+│   ├── test-qwen.ts          # Qwen 测试脚本
+│   ├── test-deepseek-raw.ts  # DeepSeek 原始测试脚本
+│   └── test-data-uri.ts      # Data URI 测试脚本
 ├── docs/
 │   ├── design.md             # 设计文档
 │   ├── installation.md       # 安装指南
