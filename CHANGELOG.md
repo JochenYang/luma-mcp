@@ -21,7 +21,6 @@ All notable changes to this project will be documented in this file.
 - 新增 `stripAtPrefix()` 函数处理 Claude Code 的文件引用语法
 - 简化 `buildAnalysisPrompt()` 从两套逻辑到单一逻辑
 - 添加智能请求检测，自动补充详细分析指引
-- 在 minimax_mcp 上验证修复，真实 API 测试通过
 
 ## [1.2.1] - 2025-11-18
 
