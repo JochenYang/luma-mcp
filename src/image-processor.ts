@@ -32,17 +32,33 @@ function estimateBytesFromDataUri(input: string): number {
 }
 
 /**
+ * 移除 Claude Code 的 @ 路径前缀
+ */
+function stripAtPrefix(path: string): string {
+  // Claude Code 使用 @ 作为文件引用的语法糖
+  if (path.startsWith('@')) {
+    const stripped = path.substring(1);
+    logger.debug('Stripped @ prefix from path', { original: path, stripped });
+    return stripped;
+  }
+  return path;
+}
+
+/**
  * 验证图片来源（文件或URL）
  */
 export async function validateImageSource(imageSource: string, maxSizeMB: number = 10): Promise<void> {
+  // 首先移除可能的 @ 前缀
+  const cleanSource = stripAtPrefix(imageSource);
+  
   // 如果是 Data URI，则验证 mime 与大小后直接返回
-  if (isDataUri(imageSource)) {
-    const mime = getMimeFromDataUri(imageSource);
+  if (isDataUri(cleanSource)) {
+    const mime = getMimeFromDataUri(cleanSource);
     const allowed = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif'];
     if (!mime || !allowed.includes(mime)) {
       throw new Error(`Unsupported data URI mimeType: ${mime || 'unknown'}. Supported: ${allowed.join(', ')}`);
     }
-    const bytes = estimateBytesFromDataUri(imageSource);
+    const bytes = estimateBytesFromDataUri(cleanSource);
     const sizeMB = bytes / (1024 * 1024);
     if (sizeMB > maxSizeMB) {
       throw new Error(`Image data URI too large: ${sizeMB.toFixed(2)}MB (max: ${maxSizeMB}MB)`);
@@ -50,16 +66,15 @@ export async function validateImageSource(imageSource: string, maxSizeMB: number
     logger.debug('Image source is data URI, validated', { mime, sizeMB: sizeMB.toFixed(2) });
     return;
   }
-
-  // 如果是URL，直接返回
-  if (isUrl(imageSource)) {
-    logger.debug('Image source is URL, skipping validation', { imageSource });
+  // 如果是 URL，直接返回
+  if (isUrl(cleanSource)) {
+    logger.debug('Image source is URL, skipping validation', { imageSource: cleanSource });
     return;
   }
 
   // 验证本地文件
   try {
-    const stats = await stat(imageSource);
+    const stats = await stat(cleanSource);
     const fileSizeMB = stats.size / (1024 * 1024);
 
     if (fileSizeMB > maxSizeMB) {
@@ -67,7 +82,7 @@ export async function validateImageSource(imageSource: string, maxSizeMB: number
     }
 
     // 验证文件格式
-    const ext = imageSource.toLowerCase().split('.').pop();
+    const ext = cleanSource.toLowerCase().split('.').pop();
     const supportedFormats = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
     
     if (!ext || !supportedFormats.includes(ext)) {
@@ -75,7 +90,7 @@ export async function validateImageSource(imageSource: string, maxSizeMB: number
     }
   } catch (error) {
     if ((error as any).code === 'ENOENT') {
-      throw new Error(`Image file not found: ${imageSource}`);
+      throw new Error(`Image file not found: ${cleanSource}`);
     }
     throw error;
   }
@@ -86,20 +101,23 @@ export async function validateImageSource(imageSource: string, maxSizeMB: number
  */
 export async function imageToBase64(imagePath: string): Promise<string> {
   try {
+    // 首先移除可能的 @ 前缀
+    const cleanPath = stripAtPrefix(imagePath);
+    
     // 如果是 Data URI，直接返回（已是 data:*;base64, 格式）
-    if (isDataUri(imagePath)) {
+    if (isDataUri(cleanPath)) {
       logger.info('Using data URI image');
-      return imagePath;
+      return cleanPath;
     }
 
-    // 如果是URL，直接返回
-    if (isUrl(imagePath)) {
-      logger.info('Using remote image URL', { url: imagePath });
-      return imagePath;
+    // 如果是 URL，直接返回
+    if (isUrl(cleanPath)) {
+      logger.info('Using remote image URL', { url: cleanPath });
+      return cleanPath;
     }
 
     // 本地文件：读取并编码
-    let imageBuffer: Buffer = await readFile(imagePath);
+    let imageBuffer: Buffer = await readFile(cleanPath);
     
     // 检查文件大小，如果超过 2MB 则压缩
     if (imageBuffer.length > 2 * 1024 * 1024) {
@@ -109,7 +127,7 @@ export async function imageToBase64(imagePath: string): Promise<string> {
     
     // 转换为 base64
     const base64 = imageBuffer.toString('base64');
-    const mimeType = getMimeType(imagePath);
+    const mimeType = getMimeType(cleanPath);
     
     return `data:${mimeType};base64,${base64}`;
   } catch (error) {

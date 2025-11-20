@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.2] - 2025-11-20
+
+### Added
+- ✨ **@ 路径支持**: 自动处理 Claude Code 的 @ 文件引用前缀，修复第一次调用失败的问题
+- 📝 **智能 Prompt**: 通用请求自动添加详细指引，保证全面分析
+
+### Changed
+- 🔧 **Prompt 统一**: 简化为单一通用 prompt，智能处理不同场景
+- ✨ **表述优化**: 融合 Minimax 的经典表述，强调“不遗漏细节”和“完整提取”
+- 📚 **文档更新**: 更新项目结构，添加 qwen-client.ts 和测试文件
+
+### Fixed
+- 🐛 **@ 路径问题**: 修复 Claude Code 中 `@folder/image.png` 导致的路径错误
+- 🐛 **编译错误**: 修复 image-processor.ts 中重复声明的变量
+
+### Technical Details
+- 新增 `stripAtPrefix()` 函数处理 Claude Code 的文件引用语法
+- 简化 `buildAnalysisPrompt()` 从两套逻辑到单一逻辑
+- 添加智能请求检测，自动补充详细分析指引
+- 在 minimax_mcp 上验证修复，真实 API 测试通过
+
 ## [1.2.1] - 2025-11-18
 
 ### Changed
