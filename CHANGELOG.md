@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.3] - 2025-11-21
+
+### Changed
+- 🧹 **代码清理**: 移除 Claude 特定调试注释和实验性代码
+- 📝 **工具描述优化**: 简化和专业化工具说明，提升 AI 模型调用成功率
+- 🔧 **路径处理通用化**: 重构 @ 前缀路径处理，移除平台特定命名
+
+### Technical Details
+- 移除 Claude 资源读取相关的实验性代码
+- 重命名 `stripAtPrefix()` 为 `normalizeImageSourcePath()`
+- 清理所有客户端适配器中的调试日志和注释
+- 统一代码风格和注释规范
+
 ## [1.2.2] - 2025-11-20
 
 ### Added

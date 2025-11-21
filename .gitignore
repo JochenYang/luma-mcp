@@ -33,4 +33,3 @@ test/*.jpeg
 *.temp
 mcp-server
 .claude
-minimax_coding_plan_mcp-0.0.2

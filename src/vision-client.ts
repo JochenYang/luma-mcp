@@ -10,7 +10,11 @@ export interface VisionClient {
    * @param enableThinking 是否启用思考模式（如果模型支持）
    * @returns 分析结果文本
    */
-  analyzeImage(imageDataUrl: string, prompt: string, enableThinking?: boolean): Promise<string>;
+  analyzeImage(
+    imageDataUrl: string,
+    prompt: string,
+    enableThinking?: boolean
+  ): Promise<string>;
 
   /**
    * 获取模型名称
