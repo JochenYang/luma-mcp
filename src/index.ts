@@ -101,24 +101,23 @@ async function createServer() {
   // 注册工具 - 使用 McpServer.tool() API
   server.tool(
     "analyze_image",
-    "图像分析工具：对截图、设计稿、照片等图片进行详细理解和中文描述（支持本地文件和 HTTP(S) 图片 URL，最大 10MB）",
+    "图像分析工具：支持三种使用方式：1) 用户粘贴图片时直接调用，无需手动指定路径 2) 指定本地图片路径，如./screenshot.png 3) 指定图片URL，如https://example.com/image.png。AI应根据用户问题生成专业的分析提示词（如用户问'网站布局有什么问题'，应生成'请详细分析这个网站界面的布局问题，包括视觉层次、对齐方式、间距、响应式设计等方面的问题'），然后传递提示词和图片进行调用。",
     {
       image_source: z
         .string()
         .describe(
-          "要分析的图片来源：本地文件路径或 HTTP(S) 图片 URL（支持 PNG、JPG、JPEG、WebP、GIF，最大 10MB）"
+          "要分析的图片来源：支持三种方式 1) 用户粘贴图片时由Claude Desktop自动提供路径 2) 本地文件路径，如./screenshot.png 3) HTTP(S)图片URL，如https://example.com/image.png（支持 PNG、JPG、JPEG、WebP、GIF，最大 10MB）"
         ),
       prompt: z
         .string()
-        .optional()
         .describe(
-          "可选的任务说明，例如“帮我详细描述这张 UI 设计图的布局和组件”。如果不填，将自动生成整图的详细中文描述。"
+          '分析提示词：AI根据用户问题生成的专业分析提示词。应该包含具体的分析要求和期望的输出格式。'
         ),
     },
     async (params) => {
       try {
-        // 如果没有提供 prompt，使用默认值
-        const prompt = params.prompt || "请详细分析这张图片的内容";
+        // AI应该已经根据用户问题生成了合适的prompt
+        const prompt = params.prompt;
 
         logger.info("Analyzing image", {
           source: params.image_source,

@@ -7,7 +7,7 @@ English | [中文](../README.md)
 ## Features
 
 - **Multi-Model Support**: Supports three vision models
-  - GLM-4.5V (Zhipu) - Paid, excellent Chinese understanding
+  - GLM-4.6V (Zhipu) - Paid, excellent Chinese understanding
   - DeepSeek-OCR (SiliconFlow) - **Free to use**, strong OCR capability
   - Qwen3-VL-Flash (Aliyun) - Paid, fast and cost-effective, supports thinking mode
 - **Simple Design**: Single `analyze_image` tool handles all image analysis tasks
@@ -48,7 +48,7 @@ npx luma-mcp
 
 #### Claude Desktop
 
-**Option A: Using Zhipu GLM-4.5V**:
+**Option A: Using Zhipu GLM-4.6V**:
 
 ```json
 {
@@ -137,7 +137,7 @@ Restart Claude Desktop after configuration.
 
 Create `mcp.json` in project root or `.vscode/` directory
 
-**Option A: Using Zhipu GLM-4.5V**:
+**Option A: Using Zhipu GLM-4.6V**:
 
 ```json
 {
@@ -189,7 +189,7 @@ Create `mcp.json` in project root or `.vscode/` directory
 
 #### Claude Code (CLI)
 
-**Using Zhipu GLM-4.5V**:
+**Using Zhipu GLM-4.6V**:
 ```bash
 claude mcp add -s user luma-mcp --env ZHIPU_API_KEY=your-api-key -- npx -y luma-mcp
 ```
@@ -245,7 +245,7 @@ Claude: [Automatically calls analyze_image tool]
 
 Test without MCP clients:
 
-**Test Zhipu GLM-4.5V**:
+**Test Zhipu GLM-4.6V**:
 ```bash
 # Set API Key
 export ZHIPU_API_KEY="your-api-key"  # macOS/Linux
@@ -344,9 +344,9 @@ analyze_image({
 | `MAX_TOKENS`      | No       | `4096`    | Maximum tokens to generate                                   |
 | `TEMPERATURE`     | No       | `0.7`     | Temperature (0-1)                                            |
 | `TOP_P`           | No       | `0.7`     | Top-p parameter (0-1)                                        |
-| `ENABLE_THINKING` | No       | `false`   | Enable thinking mode (GLM-4.5V and Qwen3-VL-Flash)           |
+| `ENABLE_THINKING` | No       | `false`   | Enable thinking mode (GLM-4.6V and Qwen3-VL-Flash)           |
 
-### Zhipu GLM-4.5V Specific
+### Zhipu GLM-4.6V Specific
 
 | Variable         | Required             | Default    | Description       |
 |------------------|----------------------|------------|-------------------|
@@ -410,7 +410,7 @@ luma-mcp/
 │   ├── index.ts              # MCP server entry
 │   ├── config.ts             # Configuration management (multi-model)
 │   ├── vision-client.ts      # Vision model client interface
-│   ├── zhipu-client.ts       # GLM-4.5V API client
+│   ├── zhipu-client.ts       # GLM-4.6V API client
 │   ├── siliconflow-client.ts # DeepSeek-OCR API client
 │   ├── qwen-client.ts        # Qwen3-VL API client
 │   ├── image-processor.ts    # Image processing
@@ -435,7 +435,7 @@ luma-mcp/
 
 ### How to get API Key?
 
-**Zhipu GLM-4.5V**:
+**Zhipu GLM-4.6V**:
 1. Visit [Zhipu Open Platform](https://open.bigmodel.cn/)
 2. Register/Login
 3. Go to console and create API Key
@@ -490,7 +490,7 @@ Log file location: `~/.luma-mcp/luma-mcp-YYYY-MM-DD.log`
 
 **SiliconFlow DeepSeek-OCR**: **Completely free**, no charges!
 
-**Zhipu GLM-4.5V**: For pricing, refer to [Zhipu Official Pricing](https://open.bigmodel.cn/pricing).
+**Zhipu GLM-4.6V**: For pricing, refer to [Zhipu Official Pricing](https://open.bigmodel.cn/pricing).
 
 **Aliyun Qwen3-VL-Flash**: For pricing, refer to [Aliyun Bailian Pricing](https://help.aliyun.com/zh/model-studio/getting-started/models).
 
@@ -499,11 +499,11 @@ Typical scenario estimates:
 - Code screenshot analysis: 1500-2500 tokens
 - Detailed UI analysis: 2000-3000 tokens
 
-Enabling thinking mode (GLM-4.5V/Qwen3-VL-Flash) increases tokens by approximately 20-30%.
+Enabling thinking mode (GLM-4.6V/Qwen3-VL-Flash) increases tokens by approximately 20-30%.
 
 ### How to choose a model?
 
-| Feature          | GLM-4.5V (Zhipu)  | DeepSeek-OCR (SiliconFlow) | Qwen3-VL-Flash (Aliyun) |
+| Feature          | GLM-4.6V (Zhipu)  | DeepSeek-OCR (SiliconFlow) | Qwen3-VL-Flash (Aliyun) |
 |------------------|-------------------|----------------------------|-------------------------|
 | **Cost**         | Paid              | **Completely Free**        | Paid                    |
 | **Chinese**      | Excellent         | Good                       | **Excellent**           |
@@ -515,7 +515,7 @@ Enabling thinking mode (GLM-4.5V/Qwen3-VL-Flash) increases tokens by approximate
 **Recommendations**:
 - Need OCR/text recognition → **DeepSeek-OCR** (free)
 - Need fast and cost-effective analysis → **Qwen3-VL-Flash**
-- Need deep image understanding → **GLM-4.5V**
+- Need deep image understanding → **GLM-4.6V**
 
 ## Contributing
 
@@ -528,7 +528,7 @@ MIT License
 ## Related Links
 
 - [Zhipu AI Open Platform](https://open.bigmodel.cn/)
-- [GLM-4.5V Documentation](https://docs.bigmodel.cn/cn/guide/models/vlm/glm-4.5v)
+- [GLM-4.6V Documentation](https://docs.bigmodel.cn/cn/guide/models/vlm/glm-4.5v)
 - [SiliconFlow Platform](https://cloud.siliconflow.cn/)
 - [DeepSeek-OCR Documentation](https://docs.siliconflow.cn/cn/api-reference/chat-completions/chat-completions)
 - [Aliyun Bailian Platform](https://bailian.console.aliyun.com/)

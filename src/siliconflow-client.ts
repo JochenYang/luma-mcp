@@ -4,7 +4,6 @@
  */
 
 import axios from 'axios';
-import type { LumaConfig } from './config.js';
 import type { VisionClient } from './vision-client.js';
 import { logger } from './utils/logger.js';
 

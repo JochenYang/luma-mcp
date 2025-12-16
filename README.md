@@ -7,8 +7,8 @@
 ## 特性
 
 - **多模型支持**: 支持三个视觉模型
-  - GLM-4.5V（智谱清言）- 付费，中文理解优秀
-  - DeepSeek-OCR（硅基流动）- **免费使用**，OCR能力强
+  - GLM-4.6V（智谱清言）- 付费，中文理解优秀
+  - DeepSeek-OCR（硅基流动）- **免费使用**，OCR 能力强
   - Qwen3-VL-Flash（阿里云通义千问）- 付费，速度快成本低，支持思考模式
 - **简单设计**: 单一 `analyze_image` 工具处理所有图片分析任务
 - **智能理解**: 自动识别代码、UI、错误等不同场景
@@ -48,7 +48,7 @@ npx luma-mcp
 
 #### Claude Desktop
 
-**方案 A: 使用智谱 GLM-4.5V**:
+**方案 A: 使用智谱 GLM-4.6V**:
 
 ```json
 {
@@ -137,7 +137,7 @@ npx luma-mcp
 
 在项目根目录或 `.vscode/` 目录下创建 `mcp.json`
 
-**方案 A: 使用智谱 GLM-4.5V**:
+**方案 A: 使用智谱 GLM-4.6V**:
 
 ```json
 {
@@ -189,17 +189,20 @@ npx luma-mcp
 
 #### Claude Code (命令行)
 
-**使用智谱 GLM-4.5V**:
+**使用智谱 GLM-4.6V**:
+
 ```bash
 claude mcp add -s user luma-mcp --env ZHIPU_API_KEY=your-api-key -- npx -y luma-mcp
 ```
 
 **使用硅基流动 DeepSeek-OCR（免费）**:
+
 ```bash
 claude mcp add -s user luma-mcp --env MODEL_PROVIDER=siliconflow --env SILICONFLOW_API_KEY=your-api-key -- npx -y luma-mcp
 ```
 
 **使用阿里云通义千问 Qwen3-VL-Flash**:
+
 ```bash
 claude mcp add -s user luma-mcp --env MODEL_PROVIDER=qwen --env DASHSCOPE_API_KEY=your-api-key -- npx -y luma-mcp
 ```
@@ -213,11 +216,13 @@ claude mcp add -s user luma-mcp --env MODEL_PROVIDER=qwen --env DASHSCOPE_API_KE
 ### 重要提示
 
 **MCP 工具调用机制**:
+
 - MCP 工具需要 AI 模型**主动调用**才会执行
 - 如果使用的 AI 模型本身支持视觉（如 Claude 4.5 Sonnet），它会优先使用自己的视觉能力
 - Luma MCP 主要服务于**不支持视觉的模型**（如 GPT-4、Claude Opus 等文本模型）
 
 **如何确保工具被调用**:
+
 1. 使用完整工具名：`使用 mcp__luma-mcp__analyze_image 工具分析这张图片`
 2. 使用简化名称：`用 analyze_image 工具查看 ./screenshot.png`
 3. 提供图片路径：`请用图片分析工具查看 ./screenshot.png 中的代码错误`
@@ -230,12 +235,14 @@ claude mcp add -s user luma-mcp --env MODEL_PROVIDER=qwen --env DASHSCOPE_API_KE
 配置完成后，在 Claude 对话中可以这样使用：
 
 **推荐用法（明确指示）**:
+
 ```
 用户: 使用 Luma 分析 ./code-error.png，这段代码为什么报错？
 Claude: [调用 Luma 分析图片，返回详细分析]
 ```
 
 **或提供图片路径**:
+
 ```
 用户: 请分析 https://example.com/screenshot.jpg 中的界面问题
 Claude: [自动调用 analyze_image 工具]
@@ -245,7 +252,8 @@ Claude: [自动调用 analyze_image 工具]
 
 不需要 MCP 客户端即可测试：
 
-**测试智谱 GLM-4.5V**:
+**测试智谱 GLM-4.6V**:
+
 ```bash
 # 设置 API Key
 export ZHIPU_API_KEY="your-api-key"  # macOS/Linux
@@ -256,6 +264,7 @@ npm run test:local ./test.png
 ```
 
 **测试硅基流动 DeepSeek-OCR**:
+
 ```bash
 # 设置 API Key 和提供商
 export MODEL_PROVIDER=siliconflow
@@ -269,6 +278,7 @@ npm run test:local ./test.png
 ```
 
 **测试阿里云通义千问 Qwen3-VL-Flash**:
+
 ```bash
 # 设置 API Key 和提供商
 export MODEL_PROVIDER=qwen
@@ -282,6 +292,7 @@ npm run test:local ./test.png
 ```
 
 **其他测试命令**:
+
 ```bash
 # 测试并提问
 npm run test:local ./code-error.png "这段代码有什么问题？"
@@ -311,66 +322,67 @@ npm run test:local https://example.com/image.jpg
 // 通用分析
 analyze_image({
   image_source: "./screenshot.png",
-  prompt: "请详细分析这张图片的内容"
-})
+  prompt: "请详细分析这张图片的内容",
+});
 
 // 代码分析
 analyze_image({
   image_source: "./code-error.png",
-  prompt: "这段代码为什么报错？请提供修复建议"
-})
+  prompt: "这段代码为什么报错？请提供修复建议",
+});
 
 // UI 分析
 analyze_image({
   image_source: "https://example.com/ui.png",
-  prompt: "分析这个界面的布局和可用性问题"
-})
+  prompt: "分析这个界面的布局和可用性问题",
+});
 
 // Data URI （当客户端支持时）
 analyze_image({
   image_source: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA...",
-  prompt: "识别图片中的所有文字"
-})
+  prompt: "识别图片中的所有文字",
+});
 ```
 
 ## 环境变量
 
 ### 通用配置
 
-| 变量名            | 必需 | 默认值  | 说明                                          |
-|-------------------|------|---------|----------------------------------------------|
-| `MODEL_PROVIDER`  | 否   | `zhipu` | 模型提供商：`zhipu`、`siliconflow` 或 `qwen` |
-| `MODEL_NAME`      | 否   | 见下文  | 模型名称（自动根据提供商选择）                  |
-| `MAX_TOKENS`      | 否   | `4096`  | 最大生成 tokens                               |
-| `TEMPERATURE`     | 否   | `0.7`   | 温度参数 (0-1)                                |
-| `TOP_P`           | 否   | `0.7`   | Top-p 参数 (0-1)                              |
-| `ENABLE_THINKING` | 否   | `false` | 是否启用思考模式（GLM-4.5V 和 Qwen3-VL-Flash）  |
+| 变量名            | 必需 | 默认值  | 说明                                           |
+| ----------------- | ---- | ------- | ---------------------------------------------- |
+| `MODEL_PROVIDER`  | 否   | `zhipu` | 模型提供商：`zhipu`、`siliconflow` 或 `qwen`   |
+| `MODEL_NAME`      | 否   | 见下文  | 模型名称（自动根据提供商选择）                 |
+| `MAX_TOKENS`      | 否   | `16384` | 最大生成 tokens                                |
+| `TEMPERATURE`     | 否   | `0.7`   | 温度参数 (0-1)                                 |
+| `TOP_P`           | 否   | `0.7`   | Top-p 参数 (0-1)                               |
+| `ENABLE_THINKING` | 否   | `true`  | 是否启用思考模式（GLM-4.6V 和 Qwen3-VL-Flash） |
 
-### 智谱 GLM-4.5V 专用
+### 智谱 GLM-4.6V 专用
 
-| 变量名          | 必需           | 默认值 | 说明                |
-|-----------------|----------------|--------|---------------------|
+| 变量名          | 必需             | 默认值 | 说明                |
+| --------------- | ---------------- | ------ | ------------------- |
 | `ZHIPU_API_KEY` | 是（使用智谱时） | -      | 智谱 AI 的 API 密钥 |
 
-默认模型：`glm-4.5v`
+默认模型：`glm-4.6v`
 
 ### 硅基流动 DeepSeek-OCR 专用
 
-| 变量名                | 必需               | 默认值 | 说明                |
-|-----------------------|--------------------|--------|---------------------|
+| 变量名                | 必需                 | 默认值 | 说明                |
+| --------------------- | -------------------- | ------ | ------------------- |
 | `SILICONFLOW_API_KEY` | 是（使用硅基流动时） | -      | 硅基流动的 API 密钥 |
 
 默认模型：`deepseek-ai/DeepSeek-OCR`
 
 ### 阿里云通义千问 Qwen3-VL-Flash 专用
 
-| 变量名            | 必需             | 默认值 | 说明                    |
-|-------------------|------------------|--------|------------------------|
-| `DASHSCOPE_API_KEY` | 是（使用千问时） | -      | 阿里云百炼的 API 密钥   |
+| 变量名              | 必需             | 默认值 | 说明                  |
+| ------------------- | ---------------- | ------ | --------------------- |
+| `DASHSCOPE_API_KEY` | 是（使用千问时） | -      | 阿里云百炼的 API 密钥 |
 
 默认模型：`qwen3-vl-flash`
 
 **思考模式说明**:
+
 - 默认开启，提高图片分析的准确性和详细程度
 - 如需关闭（提高速度、降低成本），请在配置文件中设置：
   ```json
@@ -381,7 +393,7 @@ analyze_image({
         "args": ["-y", "luma-mcp"],
         "env": {
           "ZHIPU_API_KEY": "your-api-key",
-          "ZHIPU_ENABLE_THINKING": "false"
+          "ENABLE_THINKING": "false"
         }
       }
     }
@@ -410,11 +422,10 @@ luma-mcp/
 │   ├── index.ts              # MCP 服务器入口
 │   ├── config.ts             # 配置管理（支持多模型）
 │   ├── vision-client.ts      # 视觉模型客户端接口
-│   ├── zhipu-client.ts       # GLM-4.5V API 客户端
+│   ├── zhipu-client.ts       # GLM-4.6V API 客户端
 │   ├── siliconflow-client.ts # DeepSeek-OCR API 客户端
 │   ├── qwen-client.ts        # Qwen3-VL API 客户端
 │   ├── image-processor.ts    # 图片处理
-│   ├── prompts.ts            # 提示词模板
 │   └── utils/
 │       ├── logger.ts         # 日志工具
 │       └── helpers.ts        # 工具函数
@@ -435,19 +446,22 @@ luma-mcp/
 
 ### 如何获取 API Key？
 
-**智谱 GLM-4.5V**:
+**智谱 GLM-4.6V**:
+
 1. 访问 [智谱开放平台](https://open.bigmodel.cn/)
 2. 注册/登录账号
 3. 进入控制台创建 API Key
 4. 复制 API Key 到配置文件
 
 **硅基流动 DeepSeek-OCR（免费）**:
+
 1. 访问 [硅基流动平台](https://cloud.siliconflow.cn/)
 2. 注册/登录账号
 3. 进入 API 管理创建 API Key
 4. 复制 API Key 到配置文件
 
 **阿里云通义千问 Qwen3-VL-Flash**:
+
 1. 访问 [阿里云百炼平台](https://bailian.console.aliyun.com/)
 2. 注册/登录账号
 3. 进入 API-KEY 管理创建 API Key
@@ -460,11 +474,13 @@ luma-mcp/
 ### 什么是 Data URI？
 
 Data URI 是一种将图片数据嵌入字符串的方式，格式为：
+
 ```
 data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA...
 ```
 
 **使用场景**：
+
 - 当 MCP 客户端（如 Claude Desktop）支持时，可以直接传递用户粘贴的图片
 - 无需保存为临时文件，更加高效
 - 当前支持状态：**服务器已支持**，等待客户端实现
@@ -490,32 +506,34 @@ data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA...
 
 **硅基流动 DeepSeek-OCR**: **完全免费**，无需付费！
 
-**智谱 GLM-4.5V**: 定价请参考[智谱官方定价](https://open.bigmodel.cn/pricing)。
+**智谱 GLM-4.6V**: 定价请参考[智谱官方定价](https://open.bigmodel.cn/pricing)。
 
 **阿里云通义千问 Qwen3-VL-Flash**: 定价请参考[阿里云百炼定价](https://help.aliyun.com/zh/model-studio/getting-started/models)。
 
-典型场景估算：
+典型场景估算（已启用思考模式）：
+
 - 简单图片理解: 500-1000 tokens
 - 代码截图分析: 1500-2500 tokens
 - 详细 UI 分析: 2000-3000 tokens
 
-启用思考模式（GLM-4.5V/Qwen3-VL-Flash）会增加约 20-30% tokens。
+关闭思考模式可节省约 20-30% tokens。如需关闭，请设置 `ENABLE_THINKING=false`。
 
 ### 如何选择模型？
 
-| 特性         | GLM-4.5V（智谱） | DeepSeek-OCR（硅基流动） | Qwen3-VL-Flash（阿里云） |
-|--------------|----------------|------------------------|------------------------|
-| **费用**     | 收费           | **完全免费**           | 收费                   |
-| **中文理解** | 优秀           | 良好                   | **优秀**               |
-| **OCR 能力** | 良好           | **优秀**               | 优秀                   |
-| **思考模式** | 支持           | 不支持                 | 支持                   |
-| **速度/成本** | 中等           | 免费                   | **快速/低成本**         |
-| **适用场景** | 通用图片分析   | OCR、文字识别           | 快速分析、3D定位        |
+| 特性          | GLM-4.6V（智谱） | DeepSeek-OCR（硅基流动） | Qwen3-VL-Flash（阿里云） |
+| ------------- | ---------------- | ------------------------ | ------------------------ |
+| **费用**      | 收费             | **完全免费**             | 收费                     |
+| **中文理解**  | 优秀             | 良好                     | **优秀**                 |
+| **OCR 能力**  | 良好             | **优秀**                 | 优秀                     |
+| **思考模式**  | 支持             | 不支持                   | 支持                     |
+| **速度/成本** | 中等             | 免费                     | **快速/低成本**          |
+| **适用场景**  | 通用图片分析     | OCR、文字识别            | 快速分析、3D 定位        |
 
 **推荐**:
+
 - 需要 OCR 或文字识别：选择 **DeepSeek-OCR**（免费）
 - 需要快速低成本分析：选择 **Qwen3-VL-Flash**
-- 需要深度图片理解：选择 **GLM-4.5V**
+- 需要深度图片理解：选择 **GLM-4.6V**
 
 ## 贡献
 
@@ -528,7 +546,7 @@ MIT License
 ## 相关链接
 
 - [智谱 AI 开放平台](https://open.bigmodel.cn/)
-- [GLM-4.5V 文档](https://docs.bigmodel.cn/cn/guide/models/vlm/glm-4.5v)
+- [GLM-4.6V 文档](https://docs.bigmodel.cn/cn/guide/models/vlm/glm-4.6v)
 - [硅基流动平台](https://cloud.siliconflow.cn/)
 - [DeepSeek-OCR 文档](https://docs.siliconflow.cn/cn/api-reference/chat-completions/chat-completions)
 - [阿里云百炼平台](https://bailian.console.aliyun.com/)

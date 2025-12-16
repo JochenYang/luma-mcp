@@ -1,7 +1,7 @@
 {
   "name": "luma-mcp",
-  "version": "1.2.5",
-  "description": "Multi-model vision understanding MCP server. Supports GLM-4.5V (Zhipu), DeepSeek-OCR (SiliconFlow - Free), and Qwen3-VL-Flash (Aliyun)",
+  "version": "1.2.6",
+  "description": "Multi-model vision understanding MCP server. Supports GLM-4.6V (Zhipu), DeepSeek-OCR (SiliconFlow - Free), and Qwen3-VL-Flash (Aliyun)",
   "type": "module",
   "bin": {
     "luma-mcp": "build/index.js"
@@ -17,7 +17,7 @@
     "mcp",
     "vision",
     "ai",
-    "glm-4.5v",
+    "glm-4.6v",
     "zhipu",
     "deepseek-ocr",
     "siliconflow",
