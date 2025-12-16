@@ -42,7 +42,7 @@ export function loadConfig(): LumaConfig {
     }
   } else {
     apiKey = process.env.ZHIPU_API_KEY;
-    defaultModel = 'glm-4.5v';
+    defaultModel = 'glm-4.6v';
     
     if (!apiKey) {
       throw new Error('ZHIPU_API_KEY environment variable is required when using Zhipu provider');
@@ -53,9 +53,9 @@ export function loadConfig(): LumaConfig {
     provider,
     apiKey,
     model: process.env.MODEL_NAME || defaultModel,
-    maxTokens: parseInt(process.env.MAX_TOKENS || '4096', 10),
+    maxTokens: parseInt(process.env.MAX_TOKENS || '16384', 10),
     temperature: parseFloat(process.env.TEMPERATURE || '0.7'),
     topP: parseFloat(process.env.TOP_P || '0.7'),
-    enableThinking: process.env.ENABLE_THINKING === 'true',
+    enableThinking: process.env.ENABLE_THINKING !== 'false',
   };
 }

@@ -2,10 +2,9 @@
  * 智谱 GLM-4.5V API 客户端
  */
 
-import axios from 'axios';
-import type { LumaConfig } from './config.js';
-import type { VisionClient } from './vision-client.js';
-import { logger } from './utils/logger.js';
+import axios from "axios";
+import type { VisionClient } from "./vision-client.js";
+import { logger } from "./utils/logger.js";
 
 interface ZhipuMessage {
   role: string;
@@ -57,9 +56,15 @@ export class ZhipuClient implements VisionClient {
   private maxTokens: number;
   private temperature: number;
   private topP: number;
-  private apiEndpoint = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
+  private apiEndpoint = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
 
-  constructor(apiKey: string, model: string = 'glm-4.5v', maxTokens: number = 4096, temperature: number = 0.7, topP: number = 0.7) {
+  constructor(
+    apiKey: string,
+    model: string = "glm-4.6v",
+    maxTokens: number = 4096,
+    temperature: number = 0.7,
+    topP: number = 0.7
+  ) {
     this.apiKey = apiKey;
     this.model = model;
     this.maxTokens = maxTokens;
@@ -70,21 +75,25 @@ export class ZhipuClient implements VisionClient {
   /**
    * 分析图片
    */
-  async analyzeImage(imageDataUrl: string, prompt: string, enableThinking?: boolean): Promise<string> {
+  async analyzeImage(
+    imageDataUrl: string,
+    prompt: string,
+    enableThinking?: boolean
+  ): Promise<string> {
     const requestBody: ZhipuRequest = {
       model: this.model,
       messages: [
         {
-          role: 'user',
+          role: "user",
           content: [
             {
-              type: 'image_url',
+              type: "image_url",
               image_url: {
                 url: imageDataUrl,
               },
             },
             {
-              type: 'text',
+              type: "text",
               text: prompt,
             },
           ],
@@ -93,7 +102,7 @@ export class ZhipuClient implements VisionClient {
       temperature: this.temperature,
       max_tokens: this.maxTokens,
       top_p: this.topP,
-      thinking: { type: 'enabled' }, // 默认启用思考模式，提高分析准确性
+      thinking: { type: "enabled" }, // 默认启用思考模式，提高分析准确性
     };
 
     // 允许显式禁用 thinking（如需要更快速度）
@@ -101,9 +110,9 @@ export class ZhipuClient implements VisionClient {
       delete requestBody.thinking;
     }
 
-    logger.info('Calling GLM-4.5V API', { 
+    logger.info("Calling GLM-4.5V API", {
       model: this.model,
-      thinking: !!requestBody.thinking 
+      thinking: !!requestBody.thinking,
     });
 
     try {
@@ -112,35 +121,37 @@ export class ZhipuClient implements VisionClient {
         requestBody,
         {
           headers: {
-            'Authorization': `Bearer ${this.apiKey}`,
-            'Content-Type': 'application/json',
+            Authorization: `Bearer ${this.apiKey}`,
+            "Content-Type": "application/json",
           },
           timeout: 60000, // 60秒超时
         }
       );
 
       if (!response.data.choices || response.data.choices.length === 0) {
-        throw new Error('No response from GLM-4.5V');
+        throw new Error("No response from GLM-4.5V");
       }
 
       const result = response.data.choices[0].message.content;
       const usage = response.data.usage;
 
-      logger.info('GLM-4.5V API call successful', { 
+      logger.info("GLM-4.5V API call successful", {
         tokens: usage?.total_tokens || 0,
-        model: response.data.model 
+        model: response.data.model,
       });
 
       return result;
     } catch (error) {
-      logger.error('GLM-4.5V API call failed', { 
-        error: error instanceof Error ? error.message : String(error) 
+      logger.error("GLM-4.5V API call failed", {
+        error: error instanceof Error ? error.message : String(error),
       });
 
       if (axios.isAxiosError(error)) {
         const message = error.response?.data?.error?.message || error.message;
         const status = error.response?.status;
-        throw new Error(`GLM-4.5V API error (${status || 'unknown'}): ${message}`);
+        throw new Error(
+          `GLM-4.5V API error (${status || "unknown"}): ${message}`
+        );
       }
       throw error;
     }
