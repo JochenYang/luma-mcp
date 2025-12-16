@@ -19,7 +19,6 @@ import { ZhipuClient } from "./zhipu-client.js";
 import { SiliconFlowClient } from "./siliconflow-client.js";
 import { QwenClient } from "./qwen-client.js";
 import { imageToBase64, validateImageSource } from "./image-processor.js";
-import { buildAnalysisPrompt } from "./prompts.js";
 import {
   withRetry,
   createSuccessResponse,
@@ -89,11 +88,8 @@ async function createServer() {
       // 2. 处理图片（读取或返回URL）
       const imageDataUrl = await imageToBase64(imageSource);
 
-      // 3. 构建分析提示词（部分提供商使用原始提示词，部分使用结构化提示词）
-      const fullPrompt =
-        config.provider === "siliconflow"
-          ? prompt
-          : buildAnalysisPrompt(prompt);
+      // 3. 直接使用原始提示词（不进行包装或增强）
+      const fullPrompt = prompt;
 
       // 4. 调用视觉模型分析图片
       return await visionClient.analyzeImage(imageDataUrl, fullPrompt);

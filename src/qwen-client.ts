@@ -6,7 +6,6 @@
 
 import axios, { AxiosInstance } from 'axios';
 import { VisionClient } from './vision-client.js';
-import { buildAnalysisPrompt } from './prompts.js';
 
 export class QwenClient implements VisionClient {
   private client: AxiosInstance;
@@ -49,7 +48,7 @@ export class QwenClient implements VisionClient {
               },
               {
                 type: 'text',
-                text: buildAnalysisPrompt(prompt)
+                text: prompt
               }
             ]
           }
