@@ -1,5 +1,7 @@
 /**
- * 智谱 GLM-4.6V API 客户端
+ * 火山方舟 Volcengine Doubao 视觉模型客户端
+ * 支持 Doubao-Seed-1.6 系列模型（flash、vision、lite）
+ * 使用 Chat Completions API 格式
  */
 
 import axios from "axios";
@@ -7,7 +9,7 @@ import type { VisionClient } from "./vision-client.js";
 import type { LumaConfig } from "./config.js";
 import { logger } from "./utils/logger.js";
 
-interface ZhipuMessage {
+interface VolcengineMessage {
   role: string;
   content: Array<{
     type: string;
@@ -18,19 +20,18 @@ interface ZhipuMessage {
   }>;
 }
 
-interface ZhipuRequest {
+interface VolcengineRequest {
   model: string;
-  messages: ZhipuMessage[];
-  temperature: number;
-  max_tokens: number;
-  top_p: number;
-  thinking?: {
-    type: string;
-  };
+  messages: VolcengineMessage[];
+  temperature?: number;
+  max_tokens?: number;
+  top_p?: number;
+  stream?: boolean;
 }
 
-interface ZhipuResponse {
+interface VolcengineResponse {
   id: string;
+  object: string;
   created: number;
   model: string;
   choices: Array<{
@@ -49,22 +50,21 @@ interface ZhipuResponse {
 }
 
 /**
- * 智谱 API 客户端
+ * 火山方舟客户端
  */
-export class ZhipuClient implements VisionClient {
+export class VolcengineClient implements VisionClient {
   private apiKey: string;
   private model: string;
   private maxTokens: number;
   private temperature: number;
-  private topP: number;
-  private apiEndpoint = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
+  private apiEndpoint =
+    "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
 
   constructor(config: LumaConfig) {
     this.apiKey = config.apiKey;
     this.model = config.model;
     this.maxTokens = config.maxTokens;
     this.temperature = config.temperature;
-    this.topP = config.topP;
   }
 
   /**
@@ -75,7 +75,7 @@ export class ZhipuClient implements VisionClient {
     prompt: string,
     enableThinking?: boolean
   ): Promise<string> {
-    const requestBody: ZhipuRequest = {
+    const requestBody: VolcengineRequest = {
       model: this.model,
       messages: [
         {
@@ -96,22 +96,16 @@ export class ZhipuClient implements VisionClient {
       ],
       temperature: this.temperature,
       max_tokens: this.maxTokens,
-      top_p: this.topP,
-      thinking: { type: "enabled" }, // 默认启用思考模式，提高分析准确性
+      stream: false,
     };
 
-    // 允许显式禁用 thinking（如需要更快速度）
-    if (enableThinking === false) {
-      delete requestBody.thinking;
-    }
-
-    logger.info("Calling GLM-4.6V API", {
+    logger.info("Calling Volcengine Doubao API", {
       model: this.model,
-      thinking: !!requestBody.thinking,
+      thinking: !!enableThinking,
     });
 
     try {
-      const response = await axios.post<ZhipuResponse>(
+      const response = await axios.post<VolcengineResponse>(
         this.apiEndpoint,
         requestBody,
         {
@@ -119,25 +113,25 @@ export class ZhipuClient implements VisionClient {
             Authorization: `Bearer ${this.apiKey}`,
             "Content-Type": "application/json",
           },
-          timeout: 60000, // 60秒超时
+          timeout: 120000, // 120秒超时
         }
       );
 
       if (!response.data.choices || response.data.choices.length === 0) {
-        throw new Error("No response from GLM-4.6V");
+        throw new Error("No response from Volcengine Doubao");
       }
 
       const result = response.data.choices[0].message.content;
       const usage = response.data.usage;
 
-      logger.info("GLM-4.6V API call successful", {
+      logger.info("Volcengine Doubao API call successful", {
         tokens: usage?.total_tokens || 0,
         model: response.data.model,
       });
 
       return result;
     } catch (error) {
-      logger.error("GLM-4.6V API call failed", {
+      logger.error("Volcengine Doubao API call failed", {
         error: error instanceof Error ? error.message : String(error),
       });
 
@@ -145,7 +139,7 @@ export class ZhipuClient implements VisionClient {
         const message = error.response?.data?.error?.message || error.message;
         const status = error.response?.status;
         throw new Error(
-          `GLM-4.6V API error (${status || "unknown"}): ${message}`
+          `Volcengine Doubao API error (${status || "unknown"}): ${message}`
         );
       }
       throw error;
@@ -156,6 +150,6 @@ export class ZhipuClient implements VisionClient {
    * 获取模型名称
    */
   getModelName(): string {
-    return `GLM (${this.model})`;
+    return `Doubao (${this.model})`;
   }
 }

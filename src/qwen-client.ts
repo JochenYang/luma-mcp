@@ -6,6 +6,7 @@
 
 import axios, { AxiosInstance } from 'axios';
 import { VisionClient } from './vision-client.js';
+import type { LumaConfig } from './config.js';
 
 export class QwenClient implements VisionClient {
   private client: AxiosInstance;
@@ -14,17 +15,17 @@ export class QwenClient implements VisionClient {
   private maxTokens: number;
   private temperature: number;
 
-  constructor(apiKey: string, model: string = 'qwen3-vl-flash', maxTokens: number = 4096, temperature: number = 0.7) {
-    this.apiKey = apiKey;
-    this.model = model;
-    this.maxTokens = maxTokens;
-    this.temperature = temperature;
+  constructor(config: LumaConfig) {
+    this.apiKey = config.apiKey;
+    this.model = config.model;
+    this.maxTokens = config.maxTokens;
+    this.temperature = config.temperature;
 
     // 使用阿里云百炼的 OpenAI 兼容接口
     this.client = axios.create({
       baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        'Authorization': `Bearer ${config.apiKey}`,
         'Content-Type': 'application/json',
       },
       timeout: 180000, // 180秒超时

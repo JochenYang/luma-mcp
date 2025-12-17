@@ -6,10 +6,11 @@
 
 ## 特性
 
-- **多模型支持**: 支持三个视觉模型
+- **多模型支持**: 支持四个视觉模型
   - GLM-4.6V（智谱清言）- 付费，中文理解优秀
   - DeepSeek-OCR（硅基流动）- **免费使用**，OCR 能力强
   - Qwen3-VL-Flash（阿里云通义千问）- 付费，速度快成本低，支持思考模式
+  - Doubao-Seed-1.6（火山方舟）- 付费，性价比高，支持多种版本
 - **简单设计**: 单一 `analyze_image` 工具处理所有图片分析任务
 - **智能理解**: 自动识别代码、UI、错误等不同场景
 - **全面支持**: 代码截图、界面设计、错误诊断、OCR 文字识别
@@ -26,6 +27,7 @@
   - **方案 A**: 智谱 AI API Key ([获取地址](https://open.bigmodel.cn/)) - 中文理解优秀
   - **方案 B**: 硅基流动 API Key ([获取地址](https://cloud.siliconflow.cn/)) - **免费使用**，OCR 能力强
   - **方案 C**: 阿里云百炼 API Key ([获取地址](https://bailian.console.aliyun.com/)) - 速度快成本低，支持思考模式
+  - **方案 D**: 火山方舟 API Key ([获取地址](https://console.volcengine.com/ark)) - 性价比高，支持多种版本
 
 ### 安装
 
@@ -92,6 +94,24 @@ npx luma-mcp
       "env": {
         "MODEL_PROVIDER": "qwen",
         "DASHSCOPE_API_KEY": "your-dashscope-api-key"
+      }
+    }
+  }
+}
+```
+
+**方案 D: 使用火山方舟 Doubao-Seed-1.6**:
+
+```json
+{
+  "mcpServers": {
+    "luma": {
+      "command": "npx",
+      "args": ["-y", "luma-mcp"],
+      "env": {
+        "MODEL_PROVIDER": "volcengine",
+        "VOLCENGINE_API_KEY": "your-volcengine-api-key",
+        "MODEL_NAME": "doubao-seed-1-6-flash-250828"
       }
     }
   }

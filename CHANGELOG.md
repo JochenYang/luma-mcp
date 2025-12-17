@@ -2,6 +2,42 @@
 
 本项目的所有重大变更都将记录在此文件中。
 
+## [1.2.7] - 2025-12-17
+
+### Added
+
+- 🆕 **火山方舟 Provider**: 新增第四个视觉模型提供商 - 火山方舟 Volcengine
+- 🎯 **Doubao-Seed-1.6 系列**: 支持 flash、vision、lite 多种版本
+- 🔧 **统一配置架构**: 客户端构造函数改为接受 LumaConfig 对象，实现配置集中管理
+- 🖼️ **完整图片格式支持**: 火山方舟支持 base64 数据、URL 链接和本地文件
+
+### Changed
+
+- 🏗️ **架构重构**: 三个现有客户端（Zhipu、SiliconFlow、Qwen）重构为统一配置对象模式
+- 🗃️ **客户端优化**: 移除硬编码默认值，所有配置统一从环境变量读取
+- 📝 **API 格式统一**: 火山方舟客户端改为使用 Chat Completions API 格式，与其他 provider 保持一致
+- 📚 **文档完善**: 更新中英文 README，添加火山方舟配置示例和模型对比
+
+### Technical Details
+
+- `src/config.ts`: 新增 volcengine provider 支持，添加 VOLCENGINE_API_KEY 环境变量
+- `src/volcengine-client.ts`: 新文件，完整实现 VolcengineClient 类，支持 Chat Completions API
+- `src/zhipu-client.ts`: 重构构造函数，移除硬编码参数，支持 LumaConfig
+- `src/siliconflow-client.ts`: 重构构造函数，支持统一配置对象
+- `src/qwen-client.ts`: 重构构造函数，支持统一配置对象
+- `src/index.ts`: 添加 VolcengineClient 导入和实例化逻辑
+- `.env.example`: 添加火山方舟配置示例和说明
+- `README.md` & `docs/README_EN.md`: 新增火山方舟特性说明和配置示例
+
+### Provider Summary
+
+现在支持 4 个视觉模型提供商:
+
+1. **智谱 GLM-4.6V** (默认): 中文理解优秀，16384 tokens
+2. **硅基流动 DeepSeek-OCR**: 免费使用，OCR 能力强
+3. **阿里云 Qwen3-VL-Flash**: 速度快成本低，支持思考模式
+4. **火山方舟 Doubao-Seed-1.6**: 性价比高，256k 上下文，支持多种版本
+
 ## [1.2.6] - 2025-12-16
 
 ### Changed

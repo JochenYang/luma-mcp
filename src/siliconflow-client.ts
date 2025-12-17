@@ -5,6 +5,7 @@
 
 import axios from 'axios';
 import type { VisionClient } from './vision-client.js';
+import type { LumaConfig } from './config.js';
 import { logger } from './utils/logger.js';
 
 interface SiliconFlowMessage {
@@ -57,11 +58,11 @@ export class SiliconFlowClient implements VisionClient {
   private temperature: number;
   private apiEndpoint = 'https://api.siliconflow.cn/v1/chat/completions';
 
-  constructor(apiKey: string, model: string = 'deepseek-ai/DeepSeek-OCR', maxTokens: number = 4096, temperature: number = 0.7) {
-    this.apiKey = apiKey;
-    this.model = model;
-    this.maxTokens = maxTokens;
-    this.temperature = temperature;
+  constructor(config: LumaConfig) {
+    this.apiKey = config.apiKey;
+    this.model = config.model;
+    this.maxTokens = config.maxTokens;
+    this.temperature = config.temperature;
   }
 
   /**

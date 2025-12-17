@@ -18,6 +18,7 @@ import type { VisionClient } from "./vision-client.js";
 import { ZhipuClient } from "./zhipu-client.js";
 import { SiliconFlowClient } from "./siliconflow-client.js";
 import { QwenClient } from "./qwen-client.js";
+import { VolcengineClient } from "./volcengine-client.js";
 import { imageToBase64, validateImageSource } from "./image-processor.js";
 import {
   withRetry,
@@ -38,27 +39,13 @@ async function createServer() {
   let visionClient: VisionClient;
 
   if (config.provider === "siliconflow") {
-    visionClient = new SiliconFlowClient(
-      config.apiKey,
-      config.model,
-      config.maxTokens,
-      config.temperature
-    );
+    visionClient = new SiliconFlowClient(config);
   } else if (config.provider === "qwen") {
-    visionClient = new QwenClient(
-      config.apiKey,
-      config.model,
-      config.maxTokens,
-      config.temperature
-    );
+    visionClient = new QwenClient(config);
+  } else if (config.provider === "volcengine") {
+    visionClient = new VolcengineClient(config);
   } else {
-    visionClient = new ZhipuClient(
-      config.apiKey,
-      config.model,
-      config.maxTokens,
-      config.temperature,
-      config.topP
-    );
+    visionClient = new ZhipuClient(config);
   }
 
   logger.info("Vision client initialized", {

@@ -3,7 +3,7 @@
  * 从环境变量读取配置
  */
 
-export type ModelProvider = 'zhipu' | 'siliconflow' | 'qwen';
+export type ModelProvider = 'zhipu' | 'siliconflow' | 'qwen' | 'volcengine';
 
 export interface LumaConfig {
   provider: ModelProvider;
@@ -36,14 +36,21 @@ export function loadConfig(): LumaConfig {
   } else if (provider === 'qwen') {
     apiKey = process.env.DASHSCOPE_API_KEY;
     defaultModel = 'qwen3-vl-flash';
-    
+
     if (!apiKey) {
       throw new Error('DASHSCOPE_API_KEY environment variable is required when using Qwen provider');
+    }
+  } else if (provider === 'volcengine') {
+    apiKey = process.env.VOLCENGINE_API_KEY;
+    defaultModel = 'doubao-seed-1-6-flash-250828';
+
+    if (!apiKey) {
+      throw new Error('VOLCENGINE_API_KEY environment variable is required when using Volcengine provider');
     }
   } else {
     apiKey = process.env.ZHIPU_API_KEY;
     defaultModel = 'glm-4.6v';
-    
+
     if (!apiKey) {
       throw new Error('ZHIPU_API_KEY environment variable is required when using Zhipu provider');
     }

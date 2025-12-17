@@ -6,10 +6,11 @@ English | [中文](../README.md)
 
 ## Features
 
-- **Multi-Model Support**: Supports three vision models
+- **Multi-Model Support**: Supports four vision models
   - GLM-4.6V (Zhipu) - Paid, excellent Chinese understanding
   - DeepSeek-OCR (SiliconFlow) - **Free to use**, strong OCR capability
   - Qwen3-VL-Flash (Aliyun) - Paid, fast and cost-effective, supports thinking mode
+  - Doubao-Seed-1.6 (Volcengine) - Paid, cost-effective, supports multiple versions
 - **Simple Design**: Single `analyze_image` tool handles all image analysis tasks
 - **Smart Understanding**: Automatically recognizes different scenarios (code, UI, errors, etc.)
 - **Comprehensive Support**: Code screenshots, UI design, error diagnosis, OCR text recognition
@@ -26,6 +27,7 @@ English | [中文](../README.md)
   - **Option A**: Zhipu AI API Key ([Get it here](https://open.bigmodel.cn/)) - Excellent Chinese understanding
   - **Option B**: SiliconFlow API Key ([Get it here](https://cloud.siliconflow.cn/)) - **Free to use**, Strong OCR capability
   - **Option C**: Aliyun Bailian API Key ([Get it here](https://bailian.console.aliyun.com/)) - Fast and cost-effective, supports thinking mode
+  - **Option D**: Volcengine API Key ([Get it here](https://console.volcengine.com/ark)) - Cost-effective, supports multiple versions
 
 ### Installation
 
@@ -92,6 +94,24 @@ npx luma-mcp
       "env": {
         "MODEL_PROVIDER": "qwen",
         "DASHSCOPE_API_KEY": "your-dashscope-api-key"
+      }
+    }
+  }
+}
+```
+
+**Option D: Using Volcengine Doubao-Seed-1.6**:
+
+```json
+{
+  "mcpServers": {
+    "luma": {
+      "command": "npx",
+      "args": ["-y", "luma-mcp"],
+      "env": {
+        "MODEL_PROVIDER": "volcengine",
+        "VOLCENGINE_API_KEY": "your-volcengine-api-key",
+        "MODEL_NAME": "doubao-seed-1-6-flash-250828"
       }
     }
   }
