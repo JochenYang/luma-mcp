@@ -445,6 +445,7 @@ luma-mcp/
 │   ├── zhipu-client.ts       # GLM-4.6V API 客户端
 │   ├── siliconflow-client.ts # DeepSeek-OCR API 客户端
 │   ├── qwen-client.ts        # Qwen3-VL API 客户端
+│   ├── volcengine-client.ts  # Doubao-Seed-1.6 API 客户端
 │   ├── image-processor.ts    # 图片处理
 │   └── utils/
 │       ├── logger.ts         # 日志工具

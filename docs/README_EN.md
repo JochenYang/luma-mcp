@@ -433,8 +433,8 @@ luma-mcp/
 │   ├── zhipu-client.ts       # GLM-4.6V API client
 │   ├── siliconflow-client.ts # DeepSeek-OCR API client
 │   ├── qwen-client.ts        # Qwen3-VL API client
+│   ├── volcengine-client.ts  # Doubao-Seed-1.6 API client
 │   ├── image-processor.ts    # Image processing
-│   ├── prompts.ts            # Prompt templates
 │   └── utils/
 │       ├── logger.ts         # Logging utilities
 │       └── helpers.ts        # Helper functions
