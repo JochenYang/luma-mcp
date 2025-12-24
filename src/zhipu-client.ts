@@ -97,12 +97,11 @@ export class ZhipuClient implements VisionClient {
       temperature: this.temperature,
       max_tokens: this.maxTokens,
       top_p: this.topP,
-      thinking: { type: "enabled" }, // 默认启用思考模式，提高分析准确性
     };
 
-    // 允许显式禁用 thinking（如需要更快速度）
-    if (enableThinking === false) {
-      delete requestBody.thinking;
+    // 根据参数决定是否启用思考模式
+    if (enableThinking !== false) {
+      requestBody.thinking = { type: "enabled" };
     }
 
     logger.info("Calling GLM-4.6V API", {

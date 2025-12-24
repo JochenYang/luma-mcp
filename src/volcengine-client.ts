@@ -27,6 +27,9 @@ interface VolcengineRequest {
   max_tokens?: number;
   top_p?: number;
   stream?: boolean;
+  thinking?: {
+    type: string;
+  };
 }
 
 interface VolcengineResponse {
@@ -99,9 +102,14 @@ export class VolcengineClient implements VisionClient {
       stream: false,
     };
 
+    // 根据参数决定是否启用思考模式
+    if (enableThinking !== false) {
+      requestBody.thinking = { type: "enabled" };
+    }
+
     logger.info("Calling Volcengine Doubao API", {
       model: this.model,
-      thinking: !!enableThinking,
+      thinking: !!requestBody.thinking,
     });
 
     try {

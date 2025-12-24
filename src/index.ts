@@ -79,7 +79,11 @@ async function createServer() {
       const fullPrompt = prompt;
 
       // 4. 调用视觉模型分析图片
-      return await visionClient.analyzeImage(imageDataUrl, fullPrompt);
+      return await visionClient.analyzeImage(
+        imageDataUrl,
+        fullPrompt,
+        config.enableThinking
+      );
     },
     2, // 最多重试2次
     1000 // 初始延补1秒
@@ -98,7 +102,7 @@ async function createServer() {
       prompt: z
         .string()
         .describe(
-          '分析提示词：AI根据用户问题生成的专业分析提示词。应该包含具体的分析要求和期望的输出格式。'
+          "分析提示词：AI根据用户问题生成的专业分析提示词。应该包含具体的分析要求和期望的输出格式。"
         ),
     },
     async (params) => {

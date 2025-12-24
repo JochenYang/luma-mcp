@@ -33,3 +33,6 @@ test/*.jpeg
 *.temp
 mcp-server
 .claude
+
+# Other repositories
+open-orchestra/
