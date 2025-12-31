@@ -125,7 +125,7 @@ npx luma-mcp
   "mcpServers": {
     "luma": {
       "command": "node",
-      "args": ["D:\\codes\\Luma_mcp\\build\\index.js"],
+      "args": ["D:\\codes\\luma-mcp\\build\\index.js"],
       "env": {
         "ZHIPU_API_KEY": "your-zhipu-api-key"
       }
@@ -141,7 +141,7 @@ npx luma-mcp
   "mcpServers": {
     "luma": {
       "command": "node",
-      "args": ["D:\\codes\\Luma_mcp\\build\\index.js"],
+      "args": ["D:\\codes\\luma-mcp\\build\\index.js"],
       "env": {
         "MODEL_PROVIDER": "siliconflow",
         "SILICONFLOW_API_KEY": "your-siliconflow-api-key"
@@ -357,36 +357,36 @@ analyze_image({
 
 ### General Configuration
 
-| Variable          | Required | Default   | Description                                                  |
-|-------------------|----------|-----------|--------------------------------------------------------------|
-| `MODEL_PROVIDER`  | No       | `zhipu`   | Model provider: `zhipu`, `siliconflow`, or `qwen`            |
-| `MODEL_NAME`      | No       | See below | Model name (auto-selected based on provider)                 |
-| `MAX_TOKENS`      | No       | `4096`    | Maximum tokens to generate                                   |
-| `TEMPERATURE`     | No       | `0.7`     | Temperature (0-1)                                            |
-| `TOP_P`           | No       | `0.7`     | Top-p parameter (0-1)                                        |
-| `ENABLE_THINKING` | No       | `false`   | Enable thinking mode (GLM-4.6V and Qwen3-VL-Flash)           |
+| Variable          | Required | Default   | Description                                        |
+|-------------------|----------|-----------|----------------------------------------------------|
+| `MODEL_PROVIDER`  | No       | `zhipu`   | Model provider: `zhipu`, `siliconflow`, or `qwen`  |
+| `MODEL_NAME`      | No       | See below | Model name (auto-selected based on provider)       |
+| `MAX_TOKENS`      | No       | `4096`    | Maximum tokens to generate                         |
+| `TEMPERATURE`     | No       | `0.7`     | Temperature (0-1)                                  |
+| `TOP_P`           | No       | `0.7`     | Top-p parameter (0-1)                              |
+| `ENABLE_THINKING` | No       | `false`   | Enable thinking mode (GLM-4.6V and Qwen3-VL-Flash) |
 
 ### Zhipu GLM-4.6V Specific
 
-| Variable         | Required             | Default    | Description       |
-|------------------|----------------------|------------|-------------------|
-| `ZHIPU_API_KEY`  | Yes (when using Zhipu) | -        | Zhipu AI API key  |
+| Variable        | Required               | Default | Description      |
+|-----------------|------------------------|---------|------------------|
+| `ZHIPU_API_KEY` | Yes (when using Zhipu) | -       | Zhipu AI API key |
 
 Default model: `glm-4.5v`
 
 ### SiliconFlow DeepSeek-OCR Specific
 
-| Variable               | Required                      | Default                      | Description            |
-|------------------------|-------------------------------|------------------------------|------------------------|
-| `SILICONFLOW_API_KEY`  | Yes (when using SiliconFlow)  | -                            | SiliconFlow API key    |
+| Variable              | Required                     | Default | Description         |
+|-----------------------|------------------------------|---------|---------------------|
+| `SILICONFLOW_API_KEY` | Yes (when using SiliconFlow) | -       | SiliconFlow API key |
 
 Default model: `deepseek-ai/DeepSeek-OCR`
 
 ### Aliyun Qwen3-VL-Flash Specific
 
-| Variable              | Required                   | Default  | Description                  |
-|-----------------------|----------------------------|----------|------------------------------|
-| `DASHSCOPE_API_KEY`   | Yes (when using Qwen)      | -        | Aliyun Bailian API key       |
+| Variable            | Required              | Default | Description            |
+|---------------------|-----------------------|---------|------------------------|
+| `DASHSCOPE_API_KEY` | Yes (when using Qwen) | -       | Aliyun Bailian API key |
 
 Default model: `qwen3-vl-flash`
 
@@ -523,14 +523,14 @@ Enabling thinking mode (GLM-4.6V/Qwen3-VL-Flash) increases tokens by approximate
 
 ### How to choose a model?
 
-| Feature          | GLM-4.6V (Zhipu)  | DeepSeek-OCR (SiliconFlow) | Qwen3-VL-Flash (Aliyun) |
-|------------------|-------------------|----------------------------|-------------------------|
-| **Cost**         | Paid              | **Completely Free**        | Paid                    |
-| **Chinese**      | Excellent         | Good                       | **Excellent**           |
-| **OCR**          | Good              | **Excellent**              | Excellent               |
-| **Thinking Mode**| Supported         | Not supported              | Supported               |
-| **Speed/Cost**   | Medium            | Free                       | **Fast/Low Cost**       |
-| **Use Cases**    | General analysis  | OCR, Text recognition      | Fast analysis, 3D positioning |
+| Feature           | GLM-4.6V (Zhipu) | DeepSeek-OCR (SiliconFlow) | Qwen3-VL-Flash (Aliyun)       |
+|-------------------|------------------|----------------------------|-------------------------------|
+| **Cost**          | Paid             | **Completely Free**        | Paid                          |
+| **Chinese**       | Excellent        | Good                       | **Excellent**                 |
+| **OCR**           | Good             | **Excellent**              | Excellent                     |
+| **Thinking Mode** | Supported        | Not supported              | Supported                     |
+| **Speed/Cost**    | Medium           | Free                       | **Fast/Low Cost**             |
+| **Use Cases**     | General analysis | OCR, Text recognition      | Fast analysis, 3D positioning |
 
 **Recommendations**:
 - Need OCR/text recognition → **DeepSeek-OCR** (free)

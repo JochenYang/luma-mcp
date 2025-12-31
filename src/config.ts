@@ -6,13 +6,14 @@
 export type ModelProvider = 'zhipu' | 'siliconflow' | 'qwen' | 'volcengine';
 
 export interface LumaConfig {
-  provider: ModelProvider;
-  apiKey: string;
-  model: string;
-  maxTokens: number;
-  temperature: number;
-  topP: number;
-  enableThinking: boolean;
+	provider: ModelProvider;
+	apiKey: string;
+	model: string;
+	maxTokens: number;
+	temperature: number;
+	topP: number;
+	enableThinking: boolean;
+	baseVisionPrompt?: string;
 }
 
 /**
@@ -63,6 +64,7 @@ export function loadConfig(): LumaConfig {
     maxTokens: parseInt(process.env.MAX_TOKENS || '16384', 10),
     temperature: parseFloat(process.env.TEMPERATURE || '0.7'),
     topP: parseFloat(process.env.TOP_P || '0.7'),
-    enableThinking: process.env.ENABLE_THINKING !== 'false',
+		enableThinking: process.env.ENABLE_THINKING !== 'false',
+		baseVisionPrompt: process.env.BASE_VISION_PROMPT,
   };
 }
