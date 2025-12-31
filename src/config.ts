@@ -32,28 +32,28 @@ export function loadConfig(): LumaConfig {
     defaultModel = 'deepseek-ai/DeepSeek-OCR';
     
     if (!apiKey) {
-      throw new Error('SILICONFLOW_API_KEY environment variable is required when using SiliconFlow provider');
+      throw new Error('SILICONFLOW_API_KEY environment variable is required. Please configure it in your MCP settings.');
     }
   } else if (provider === 'qwen') {
     apiKey = process.env.DASHSCOPE_API_KEY;
     defaultModel = 'qwen3-vl-flash';
 
     if (!apiKey) {
-      throw new Error('DASHSCOPE_API_KEY environment variable is required when using Qwen provider');
+      throw new Error('DASHSCOPE_API_KEY environment variable is required. Please configure it in your MCP settings.');
     }
   } else if (provider === 'volcengine') {
     apiKey = process.env.VOLCENGINE_API_KEY;
     defaultModel = 'doubao-seed-1-6-flash-250828';
 
     if (!apiKey) {
-      throw new Error('VOLCENGINE_API_KEY environment variable is required when using Volcengine provider');
+      throw new Error('VOLCENGINE_API_KEY environment variable is required. Please configure it in your MCP settings.');
     }
   } else {
     apiKey = process.env.ZHIPU_API_KEY;
     defaultModel = 'glm-4.6v';
 
     if (!apiKey) {
-      throw new Error('ZHIPU_API_KEY environment variable is required when using Zhipu provider');
+      throw new Error('ZHIPU_API_KEY environment variable is required. Please configure it in your MCP settings.');
     }
   }
 
