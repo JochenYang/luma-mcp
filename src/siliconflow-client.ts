@@ -1,6 +1,6 @@
 /**
  * 硅基流动 DeepSeek-OCR API 客户端
- * 基于 OpenAI 兼容 API
+ * OpenAI 兼容接口
  */
 
 import axios from 'axios';
@@ -106,7 +106,7 @@ export class SiliconFlowClient implements VisionClient {
             'Authorization': `Bearer ${this.apiKey}`,
             'Content-Type': 'application/json',
           },
-          timeout: 60000, // 60秒超时
+          timeout: 60000, // 60s 超时
         }
       );
 

@@ -6,11 +6,12 @@
 
 ## 特性
 
-- **多模型支持**: 支持四个视觉模型
+- **多模型支持**: 支持五个视觉模型
   - GLM-4.6V（智谱清言）- 付费，中文理解优秀
   - DeepSeek-OCR（硅基流动）- **免费使用**，OCR 能力强
   - Qwen3-VL-Flash（阿里云通义千问）- 付费，速度快成本低，支持思考模式
   - Doubao-Seed-1.6（火山方舟）- 付费，性价比高，支持多种版本
+  - Hunyuan-Vision-1.5（腾讯混元）- 付费，图文推理强，多语言表现优秀
 - **简单设计**: 单一 `analyze_image` 工具处理所有图片分析任务
 - **智能理解**: 自动识别代码、UI、错误等不同场景
 - **全面支持**: 代码截图、界面设计、错误诊断、OCR 文字识别
@@ -28,6 +29,7 @@
   - **方案 B**: 硅基流动 API Key ([获取地址](https://cloud.siliconflow.cn/)) - **免费使用**，OCR 能力强
   - **方案 C**: 阿里云百炼 API Key ([获取地址](https://bailian.console.aliyun.com/)) - 速度快成本低，支持思考模式
   - **方案 D**: 火山方舟 API Key ([获取地址](https://console.volcengine.com/ark)) - 性价比高，支持多种版本
+- **方案 E**: 腾讯混元 API Key ([获取地址](https://cloud.tencent.com/product/hunyuan)) - 图文推理强，多语言表现优秀
 
 ### 安装
 
@@ -118,6 +120,26 @@ npx luma-mcp
 }
 ```
 
+**方案 E: 使用腾讯混元 Hunyuan-Vision-1.5**:
+
+MODEL_NAME 可选：`hunyuan-t1-vision-20250916`（默认）或 `HY-vision-1.5-instruct`
+
+```json
+{
+  "mcpServers": {
+    "luma": {
+      "command": "npx",
+      "args": ["-y", "luma-mcp"],
+      "env": {
+        "MODEL_PROVIDER": "hunyuan",
+        "HUNYUAN_API_KEY": "your-hunyuan-api-key",
+        "MODEL_NAME": "hunyuan-t1-vision-20250916"
+      }
+    }
+  }
+}
+```
+
 **本地开发（智谱）**:
 
 ```json
@@ -145,6 +167,24 @@ npx luma-mcp
       "env": {
         "MODEL_PROVIDER": "siliconflow",
         "SILICONFLOW_API_KEY": "your-siliconflow-api-key"
+      }
+    }
+  }
+}
+```
+
+**本地开发（腾讯混元）**:
+
+```json
+{
+  "mcpServers": {
+    "luma": {
+      "command": "node",
+      "args": ["D:\\codes\\luma-mcp\\build\\index.js"],
+      "env": {
+        "MODEL_PROVIDER": "hunyuan",
+        "HUNYUAN_API_KEY": "your-hunyuan-api-key",
+        "MODEL_NAME": "hunyuan-t1-vision-20250916"
       }
     }
   }
@@ -207,6 +247,44 @@ npx luma-mcp
 }
 ```
 
+**方案 D: 使用火山方舟 Doubao-Seed-1.6**:
+
+```json
+{
+  "mcpServers": {
+    "luma": {
+      "command": "npx",
+      "args": ["-y", "luma-mcp"],
+      "env": {
+        "MODEL_PROVIDER": "volcengine",
+        "VOLCENGINE_API_KEY": "your-volcengine-api-key",
+        "MODEL_NAME": "doubao-seed-1-6-flash-250828"
+      }
+    }
+  }
+}
+```
+
+**方案 E: 使用腾讯混元 Hunyuan-Vision-1.5**:
+
+MODEL_NAME 可选：`hunyuan-t1-vision-20250916`（默认）或 `HY-vision-1.5-instruct`
+
+```json
+{
+  "mcpServers": {
+    "luma": {
+      "command": "npx",
+      "args": ["-y", "luma-mcp"],
+      "env": {
+        "MODEL_PROVIDER": "hunyuan",
+        "HUNYUAN_API_KEY": "your-hunyuan-api-key",
+        "MODEL_NAME": "hunyuan-t1-vision-20250916"
+      }
+    }
+  }
+}
+```
+
 #### Claude Code (命令行)
 
 **使用智谱 GLM-4.6V**:
@@ -225,6 +303,18 @@ claude mcp add -s user luma-mcp --env MODEL_PROVIDER=siliconflow --env SILICONFL
 
 ```bash
 claude mcp add -s user luma-mcp --env MODEL_PROVIDER=qwen --env DASHSCOPE_API_KEY=your-api-key -- npx -y luma-mcp
+```
+
+**使用火山方舟 Doubao-Seed-1.6**:
+
+```bash
+claude mcp add -s user luma-mcp --env MODEL_PROVIDER=volcengine --env VOLCENGINE_API_KEY=your-api-key --env MODEL_NAME=doubao-seed-1-6-flash-250828 -- npx -y luma-mcp
+```
+
+**使用腾讯混元 Hunyuan-Vision-1.5**:
+
+```bash
+claude mcp add -s user luma-mcp --env MODEL_PROVIDER=hunyuan --env HUNYUAN_API_KEY=your-api-key --env MODEL_NAME=hunyuan-t1-vision-20250916 -- npx -y luma-mcp
 ```
 
 #### 其他工具
@@ -311,6 +401,20 @@ $env:DASHSCOPE_API_KEY="your-api-key"    # Windows PowerShell
 npm run test:local ./test.png
 ```
 
+**测试腾讯混元 Hunyuan-Vision-1.5**:
+
+```bash
+# 设置 API Key 和提供商
+export MODEL_PROVIDER=hunyuan
+export HUNYUAN_API_KEY="your-api-key"  # macOS/Linux
+
+$env:MODEL_PROVIDER="hunyuan"
+$env:HUNYUAN_API_KEY="your-api-key"    # Windows PowerShell
+
+# 测试本地图片
+npm run test:local ./test.png
+```
+
 **其他测试命令**:
 
 ```bash
@@ -368,14 +472,14 @@ analyze_image({
 
 ### 通用配置
 
-| 变量名            | 必需 | 默认值  | 说明                                         |
-|-------------------|------|---------|----------------------------------------------|
-| `MODEL_PROVIDER`  | 否   | `zhipu` | 模型提供商：`zhipu`、`siliconflow` 或 `qwen`   |
-| `MODEL_NAME`      | 否   | 见下文  | 模型名称（自动根据提供商选择）                 |
-| `MAX_TOKENS`      | 否   | `16384` | 最大生成 tokens                              |
-| `TEMPERATURE`     | 否   | `0.7`   | 温度参数 (0-1)                               |
-| `TOP_P`           | 否   | `0.7`   | Top-p 参数 (0-1)                             |
-| `ENABLE_THINKING` | 否   | `true`  | 是否启用思考模式（GLM-4.6V 和 Qwen3-VL-Flash） |
+| 变量名            | 必需 | 默认值  | 说明                                                           |
+|-------------------|------|---------|----------------------------------------------------------------|
+| `MODEL_PROVIDER`  | 否   | `zhipu` | 模型提供商：`zhipu`、`siliconflow`、`qwen`、`volcengine`、`hunyuan` |
+| `MODEL_NAME`      | 否   | 见下文  | 模型名称（自动根据提供商选择）                                   |
+| `MAX_TOKENS`      | 否   | `16384` | 最大生成 tokens                                                |
+| `TEMPERATURE`     | 否   | `0.7`   | 温度参数 (0-1)                                                 |
+| `TOP_P`           | 否   | `0.7`   | Top-p 参数 (0-1)                                               |
+| `ENABLE_THINKING` | 否   | `true`  | 是否启用思考模式（GLM-4.6V、Qwen3-VL-Flash、Doubao-Seed-1.6）      |
 
 ### 智谱 GLM-4.6V 专用
 
@@ -400,6 +504,16 @@ analyze_image({
 | `DASHSCOPE_API_KEY` | 是（使用千问时） | -      | 阿里云百炼的 API 密钥 |
 
 默认模型：`qwen3-vl-flash`
+
+### 腾讯混元 Hunyuan-Vision-1.5 专用
+
+| 变量名            | 必需           | 默认值 | 说明              |
+|-------------------|----------------|--------|-------------------|
+| `HUNYUAN_API_KEY` | 是（使用混元时） | -      | 腾讯混元 API 密钥 |
+
+默认模型：`hunyuan-t1-vision-20250916`
+
+可选模型：`HY-vision-1.5-instruct`
 
 **思考模式说明**:
 
@@ -446,6 +560,7 @@ luma-mcp/
 │   ├── siliconflow-client.ts # DeepSeek-OCR API 客户端
 │   ├── qwen-client.ts        # Qwen3-VL API 客户端
 │   ├── volcengine-client.ts  # Doubao-Seed-1.6 API 客户端
+│   ├── hunyuan-client.ts     # Hunyuan-Vision-1.5 API 客户端
 │   ├── image-processor.ts    # 图片处理
 │   └── utils/
 │       ├── logger.ts         # 日志工具
@@ -486,6 +601,13 @@ luma-mcp/
 1. 访问 [阿里云百炼平台](https://bailian.console.aliyun.com/)
 2. 注册/登录账号
 3. 进入 API-KEY 管理创建 API Key
+4. 复制 API Key 到配置文件
+
+**腾讯混元 Hunyuan-Vision-1.5**:
+
+1. 访问 [腾讯混元控制台](https://cloud.tencent.com/product/hunyuan)
+2. 注册/登录账号
+3. 进入 API Key 管理创建 API Key
 4. 复制 API Key 到配置文件
 
 ### 支持哪些图片格式？
@@ -541,20 +663,22 @@ data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA...
 
 ### 如何选择模型？
 
-| 特性          | GLM-4.6V（智谱） | DeepSeek-OCR（硅基流动） | Qwen3-VL-Flash（阿里云） |
-|---------------|----------------|------------------------|------------------------|
-| **费用**      | 收费           | **完全免费**           | 收费                   |
-| **中文理解**  | 优秀           | 良好                   | **优秀**               |
-| **OCR 能力**  | 良好           | **优秀**               | 优秀                   |
-| **思考模式**  | 支持           | 不支持                 | 支持                   |
-| **速度/成本** | 中等           | 免费                   | **快速/低成本**        |
-| **适用场景**  | 通用图片分析   | OCR、文字识别           | 快速分析、3D 定位       |
+| 特性          | GLM-4.6V（智谱） | DeepSeek-OCR（硅基流动） | Qwen3-VL-Flash（阿里云） | Doubao-Seed-1.6（火山方舟） | Hunyuan-Vision-1.5（腾讯混元） |
+|---------------|----------------|------------------------|------------------------|---------------------------|------------------------------|
+| **费用**      | 收费           | **完全免费**           | 收费                   | 收费                      | 收费                         |
+| **中文理解**  | 优秀           | 良好                   | **优秀**               | 优秀                      | **优秀**                     |
+| **OCR 能力**  | 良好           | **优秀**               | 优秀                   | 良好                      | 优秀                         |
+| **思考模式**  | 支持           | 不支持                 | 支持                   | 支持                      | 默认思考版模型               |
+| **速度/成本** | 中等           | 免费                   | **快速/低成本**        | 高性价比                  | 中等                         |
+| **适用场景**  | 通用图片分析   | OCR、文字识别           | 快速分析、3D 定位       | 高性价比通用分析          | 复杂图文推理、多语言理解      |
 
 **推荐**:
 
 - 需要 OCR 或文字识别：选择 **DeepSeek-OCR**（免费）
 - 需要快速低成本分析：选择 **Qwen3-VL-Flash**
+- 需要高性价比通用分析：选择 **Doubao-Seed-1.6**
 - 需要深度图片理解：选择 **GLM-4.6V**
+- 需要复杂图文推理或多语言理解：选择 **Hunyuan-Vision-1.5**
 
 ## 贡献
 
@@ -572,6 +696,7 @@ MIT License
 - [DeepSeek-OCR 文档](https://docs.siliconflow.cn/cn/api-reference/chat-completions/chat-completions)
 - [阿里云百炼平台](https://bailian.console.aliyun.com/)
 - [Qwen3-VL 文档](https://help.aliyun.com/zh/model-studio/getting-started/models)
+- [腾讯混元平台](https://cloud.tencent.com/product/hunyuan)
 - [MCP 协议文档](https://modelcontextprotocol.io/)
 
 ## 更新日志

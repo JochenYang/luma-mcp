@@ -1,6 +1,6 @@
 /**
- * 火山方舟 Volcengine Doubao 视觉模型客户端
- * 支持 Doubao-Seed-1.6 系列模型（flash、vision、lite）
+ * 火山方舟 Doubao 视觉模型客户端
+ * 支持 Doubao-Seed-1.6 系列（flash、vision、lite）
  * 使用 Chat Completions API 格式
  */
 
@@ -102,7 +102,7 @@ export class VolcengineClient implements VisionClient {
       stream: false,
     };
 
-    // 根据参数决定是否启用思考模式
+    // 根据参数启用思考模式
     if (enableThinking !== false) {
       requestBody.thinking = { type: "enabled" };
     }
@@ -121,7 +121,7 @@ export class VolcengineClient implements VisionClient {
             Authorization: `Bearer ${this.apiKey}`,
             "Content-Type": "application/json",
           },
-          timeout: 120000, // 120秒超时
+          timeout: 120000, // 120s 超时
         }
       );
 

@@ -99,7 +99,7 @@ export class ZhipuClient implements VisionClient {
       top_p: this.topP,
     };
 
-    // 根据参数决定是否启用思考模式
+    // 根据参数启用思考模式
     if (enableThinking !== false) {
       requestBody.thinking = { type: "enabled" };
     }
@@ -118,7 +118,7 @@ export class ZhipuClient implements VisionClient {
             Authorization: `Bearer ${this.apiKey}`,
             "Content-Type": "application/json",
           },
-          timeout: 60000, // 60秒超时
+          timeout: 60000, // 60s 超时
         }
       );
 

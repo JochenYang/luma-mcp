@@ -1,9 +1,9 @@
 /**
- * 配置管理模块
- * 从环境变量读取配置
+ * 配置模块
+ * 从环境变量加载配置
  */
 
-export type ModelProvider = 'zhipu' | 'siliconflow' | 'qwen' | 'volcengine';
+export type ModelProvider = 'zhipu' | 'siliconflow' | 'qwen' | 'volcengine' | 'hunyuan';
 
 export interface LumaConfig {
 	provider: ModelProvider;
@@ -20,10 +20,10 @@ export interface LumaConfig {
  * 从环境变量加载配置
  */
 export function loadConfig(): LumaConfig {
-  // 确定使用的模型提供商
+  // 确定模型提供商
   const provider = (process.env.MODEL_PROVIDER?.toLowerCase() || 'zhipu') as ModelProvider;
   
-  // 根据提供商获取 API Key
+  // 根据提供商读取 API Key
   let apiKey: string | undefined;
   let defaultModel: string;
   
@@ -47,6 +47,13 @@ export function loadConfig(): LumaConfig {
 
     if (!apiKey) {
       throw new Error('VOLCENGINE_API_KEY environment variable is required. Please configure it in your MCP settings.');
+    }
+  } else if (provider === 'hunyuan') {
+    apiKey = process.env.HUNYUAN_API_KEY;
+    defaultModel = 'hunyuan-t1-vision-20250916';
+
+    if (!apiKey) {
+      throw new Error('HUNYUAN_API_KEY environment variable is required. Please configure it in your MCP settings.');
     }
   } else {
     apiKey = process.env.ZHIPU_API_KEY;

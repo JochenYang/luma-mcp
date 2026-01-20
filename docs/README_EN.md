@@ -6,11 +6,12 @@ English | [中文](../README.md)
 
 ## Features
 
-- **Multi-Model Support**: Supports four vision models
+- **Multi-Model Support**: Supports five vision models
   - GLM-4.6V (Zhipu) - Paid, excellent Chinese understanding
   - DeepSeek-OCR (SiliconFlow) - **Free to use**, strong OCR capability
   - Qwen3-VL-Flash (Aliyun) - Paid, fast and cost-effective, supports thinking mode
   - Doubao-Seed-1.6 (Volcengine) - Paid, cost-effective, supports multiple versions
+  - Hunyuan-Vision-1.5 (Tencent) - Paid, strong multi-modal reasoning, great multilingual performance
 - **Simple Design**: Single `analyze_image` tool handles all image analysis tasks
 - **Smart Understanding**: Automatically recognizes different scenarios (code, UI, errors, etc.)
 - **Comprehensive Support**: Code screenshots, UI design, error diagnosis, OCR text recognition
@@ -28,6 +29,7 @@ English | [中文](../README.md)
   - **Option B**: SiliconFlow API Key ([Get it here](https://cloud.siliconflow.cn/)) - **Free to use**, Strong OCR capability
   - **Option C**: Aliyun Bailian API Key ([Get it here](https://bailian.console.aliyun.com/)) - Fast and cost-effective, supports thinking mode
   - **Option D**: Volcengine API Key ([Get it here](https://console.volcengine.com/ark)) - Cost-effective, supports multiple versions
+  - **Option E**: Tencent Hunyuan API Key ([Get it here](https://cloud.tencent.com/product/hunyuan)) - Strong multi-modal reasoning, great multilingual performance
 
 ### Installation
 
@@ -118,6 +120,46 @@ npx luma-mcp
 }
 ```
 
+**Option E: Using Tencent Hunyuan-Vision-1.5**:
+
+MODEL_NAME options: `hunyuan-t1-vision-20250916` (default) or `HY-vision-1.5-instruct`
+
+```json
+{
+  "mcpServers": {
+    "luma": {
+      "command": "npx",
+      "args": ["-y", "luma-mcp"],
+      "env": {
+        "MODEL_PROVIDER": "hunyuan",
+        "HUNYUAN_API_KEY": "your-hunyuan-api-key",
+        "MODEL_NAME": "hunyuan-t1-vision-20250916"
+      }
+    }
+  }
+}
+```
+
+**Option E: Using Tencent Hunyuan-Vision-1.5**:
+
+MODEL_NAME options: `hunyuan-t1-vision-20250916` (default) or `HY-vision-1.5-instruct`
+
+```json
+{
+  "mcpServers": {
+    "luma": {
+      "command": "npx",
+      "args": ["-y", "luma-mcp"],
+      "env": {
+        "MODEL_PROVIDER": "hunyuan",
+        "HUNYUAN_API_KEY": "your-hunyuan-api-key",
+        "MODEL_NAME": "hunyuan-t1-vision-20250916"
+      }
+    }
+  }
+}
+```
+
 **Local Development (Zhipu)**:
 
 ```json
@@ -145,6 +187,26 @@ npx luma-mcp
       "env": {
         "MODEL_PROVIDER": "siliconflow",
         "SILICONFLOW_API_KEY": "your-siliconflow-api-key"
+      }
+    }
+  }
+}
+```
+
+**Local Development (Tencent Hunyuan)**:
+
+MODEL_NAME options: `hunyuan-t1-vision-20250916` (default) or `HY-vision-1.5-instruct`
+
+```json
+{
+  "mcpServers": {
+    "luma": {
+      "command": "node",
+      "args": ["D:\\codes\\luma-mcp\\build\\index.js"],
+      "env": {
+        "MODEL_PROVIDER": "hunyuan",
+        "HUNYUAN_API_KEY": "your-hunyuan-api-key",
+        "MODEL_NAME": "hunyuan-t1-vision-20250916"
       }
     }
   }
@@ -207,6 +269,24 @@ Create `mcp.json` in project root or `.vscode/` directory
 }
 ```
 
+**Option D: Using Volcengine Doubao-Seed-1.6**:
+
+```json
+{
+  "mcpServers": {
+    "luma": {
+      "command": "npx",
+      "args": ["-y", "luma-mcp"],
+      "env": {
+        "MODEL_PROVIDER": "volcengine",
+        "VOLCENGINE_API_KEY": "your-volcengine-api-key",
+        "MODEL_NAME": "doubao-seed-1-6-flash-250828"
+      }
+    }
+  }
+}
+```
+
 #### Claude Code (CLI)
 
 **Using Zhipu GLM-4.6V**:
@@ -222,6 +302,16 @@ claude mcp add -s user luma-mcp --env MODEL_PROVIDER=siliconflow --env SILICONFL
 **Using Aliyun Qwen3-VL-Flash**:
 ```bash
 claude mcp add -s user luma-mcp --env MODEL_PROVIDER=qwen --env DASHSCOPE_API_KEY=your-api-key -- npx -y luma-mcp
+```
+
+**Using Volcengine Doubao-Seed-1.6**:
+```bash
+claude mcp add -s user luma-mcp --env MODEL_PROVIDER=volcengine --env VOLCENGINE_API_KEY=your-api-key --env MODEL_NAME=doubao-seed-1-6-flash-250828 -- npx -y luma-mcp
+```
+
+**Using Tencent Hunyuan-Vision-1.5**:
+```bash
+claude mcp add -s user luma-mcp --env MODEL_PROVIDER=hunyuan --env HUNYUAN_API_KEY=your-api-key --env MODEL_NAME=hunyuan-t1-vision-20250916 -- npx -y luma-mcp
 ```
 
 #### Other Tools
@@ -301,6 +391,19 @@ $env:DASHSCOPE_API_KEY="your-api-key"    # Windows PowerShell
 npm run test:local ./test.png
 ```
 
+**Test Tencent Hunyuan-Vision-1.5**:
+```bash
+# Set API Key and provider
+export MODEL_PROVIDER=hunyuan
+export HUNYUAN_API_KEY="your-api-key"  # macOS/Linux
+
+$env:MODEL_PROVIDER="hunyuan"
+$env:HUNYUAN_API_KEY="your-api-key"    # Windows PowerShell
+
+# Test local image
+npm run test:local ./test.png
+```
+
 **Other test commands**:
 ```bash
 # Test with question
@@ -357,14 +460,14 @@ analyze_image({
 
 ### General Configuration
 
-| Variable          | Required | Default   | Description                                        |
-|-------------------|----------|-----------|----------------------------------------------------|
-| `MODEL_PROVIDER`  | No       | `zhipu`   | Model provider: `zhipu`, `siliconflow`, or `qwen`  |
-| `MODEL_NAME`      | No       | See below | Model name (auto-selected based on provider)       |
-| `MAX_TOKENS`      | No       | `4096`    | Maximum tokens to generate                         |
-| `TEMPERATURE`     | No       | `0.7`     | Temperature (0-1)                                  |
-| `TOP_P`           | No       | `0.7`     | Top-p parameter (0-1)                              |
-| `ENABLE_THINKING` | No       | `false`   | Enable thinking mode (GLM-4.6V and Qwen3-VL-Flash) |
+| Variable          | Required | Default   | Description                                                             |
+|-------------------|----------|-----------|-------------------------------------------------------------------------|
+| `MODEL_PROVIDER`  | No       | `zhipu`   | Model provider: `zhipu`, `siliconflow`, `qwen`, `volcengine`, `hunyuan` |
+| `MODEL_NAME`      | No       | See below | Model name (auto-selected based on provider)                            |
+| `MAX_TOKENS`      | No       | `16384`   | Maximum tokens to generate                                              |
+| `TEMPERATURE`     | No       | `0.7`     | Temperature (0-1)                                                       |
+| `TOP_P`           | No       | `0.7`     | Top-p parameter (0-1)                                                   |
+| `ENABLE_THINKING` | No       | `true`    | Enable thinking mode (GLM-4.6V, Qwen3-VL-Flash, Doubao-Seed-1.6)        |
 
 ### Zhipu GLM-4.6V Specific
 
@@ -372,7 +475,7 @@ analyze_image({
 |-----------------|------------------------|---------|------------------|
 | `ZHIPU_API_KEY` | Yes (when using Zhipu) | -       | Zhipu AI API key |
 
-Default model: `glm-4.5v`
+Default model: `glm-4.6v`
 
 ### SiliconFlow DeepSeek-OCR Specific
 
@@ -390,6 +493,24 @@ Default model: `deepseek-ai/DeepSeek-OCR`
 
 Default model: `qwen3-vl-flash`
 
+### Volcengine Doubao-Seed-1.6 Specific
+
+| Variable             | Required                    | Default | Description        |
+|----------------------|-----------------------------|---------|--------------------|
+| `VOLCENGINE_API_KEY` | Yes (when using Volcengine) | -       | Volcengine API key |
+
+Default model: `doubao-seed-1-6-flash-250828`
+
+### Tencent Hunyuan-Vision-1.5 Specific
+
+| Variable          | Required                 | Default | Description             |
+|-------------------|--------------------------|---------|-------------------------|
+| `HUNYUAN_API_KEY` | Yes (when using Hunyuan) | -       | Tencent Hunyuan API key |
+
+Default model: `hunyuan-t1-vision-20250916`
+
+Optional model: `HY-vision-1.5-instruct`
+
 **Thinking Mode**:
 - Enabled by default for better accuracy and detailed analysis
 - To disable (faster speed, lower cost), set in config:
@@ -401,7 +522,7 @@ Default model: `qwen3-vl-flash`
         "args": ["-y", "luma-mcp"],
         "env": {
           "ZHIPU_API_KEY": "your-api-key",
-          "ZHIPU_ENABLE_THINKING": "false"
+          "ENABLE_THINKING": "false"
         }
       }
     }
@@ -434,6 +555,7 @@ luma-mcp/
 │   ├── siliconflow-client.ts # DeepSeek-OCR API client
 │   ├── qwen-client.ts        # Qwen3-VL API client
 │   ├── volcengine-client.ts  # Doubao-Seed-1.6 API client
+│   ├── hunyuan-client.ts     # Hunyuan-Vision-1.5 API client
 │   ├── image-processor.ts    # Image processing
 │   └── utils/
 │       ├── logger.ts         # Logging utilities
@@ -471,6 +593,18 @@ luma-mcp/
 1. Visit [Aliyun Bailian Platform](https://bailian.console.aliyun.com/)
 2. Register/Login
 3. Go to API-KEY management and create API Key
+4. Copy API Key to configuration file
+
+**Volcengine Doubao-Seed-1.6**:
+1. Visit [Volcengine Console](https://console.volcengine.com/ark)
+2. Register/Login
+3. Go to API Key management and create API Key
+4. Copy API Key to configuration file
+
+**Tencent Hunyuan-Vision-1.5**:
+1. Visit [Tencent Hunyuan Console](https://cloud.tencent.com/product/hunyuan)
+2. Register/Login
+3. Go to API Key management and create API Key
 4. Copy API Key to configuration file
 
 ### What image formats are supported?
@@ -523,19 +657,21 @@ Enabling thinking mode (GLM-4.6V/Qwen3-VL-Flash) increases tokens by approximate
 
 ### How to choose a model?
 
-| Feature           | GLM-4.6V (Zhipu) | DeepSeek-OCR (SiliconFlow) | Qwen3-VL-Flash (Aliyun)       |
-|-------------------|------------------|----------------------------|-------------------------------|
-| **Cost**          | Paid             | **Completely Free**        | Paid                          |
-| **Chinese**       | Excellent        | Good                       | **Excellent**                 |
-| **OCR**           | Good             | **Excellent**              | Excellent                     |
-| **Thinking Mode** | Supported        | Not supported              | Supported                     |
-| **Speed/Cost**    | Medium           | Free                       | **Fast/Low Cost**             |
-| **Use Cases**     | General analysis | OCR, Text recognition      | Fast analysis, 3D positioning |
+| Feature           | GLM-4.6V (Zhipu) | DeepSeek-OCR (SiliconFlow) | Qwen3-VL-Flash (Aliyun)       | Doubao-Seed-1.6 (Volcengine)    | Hunyuan-Vision-1.5 (Tencent)                              |
+|-------------------|------------------|----------------------------|-------------------------------|---------------------------------|-----------------------------------------------------------|
+| **Cost**          | Paid             | **Completely Free**        | Paid                          | Paid                            | Paid                                                      |
+| **Chinese**       | Excellent        | Good                       | **Excellent**                 | Excellent                       | **Excellent**                                             |
+| **OCR**           | Good             | **Excellent**              | Excellent                     | Good                            | Excellent                                                 |
+| **Thinking Mode** | Supported        | Not supported              | Supported                     | Supported                       | Default thinking model                                    |
+| **Speed/Cost**    | Medium           | Free                       | **Fast/Low Cost**             | Cost-effective                  | Medium                                                    |
+| **Use Cases**     | General analysis | OCR, Text recognition      | Fast analysis, 3D positioning | Cost-effective general analysis | Complex multi-modal reasoning, multilingual understanding |
 
 **Recommendations**:
 - Need OCR/text recognition → **DeepSeek-OCR** (free)
 - Need fast and cost-effective analysis → **Qwen3-VL-Flash**
+- Need cost-effective general analysis → **Doubao-Seed-1.6**
 - Need deep image understanding → **GLM-4.6V**
+- Need complex multi-modal reasoning or multilingual understanding → **Hunyuan-Vision-1.5**
 
 ## Contributing
 
@@ -548,11 +684,13 @@ MIT License
 ## Related Links
 
 - [Zhipu AI Open Platform](https://open.bigmodel.cn/)
-- [GLM-4.6V Documentation](https://docs.bigmodel.cn/cn/guide/models/vlm/glm-4.5v)
+- [GLM-4.6V Documentation](https://docs.bigmodel.cn/cn/guide/models/vlm/glm-4.6v)
 - [SiliconFlow Platform](https://cloud.siliconflow.cn/)
 - [DeepSeek-OCR Documentation](https://docs.siliconflow.cn/cn/api-reference/chat-completions/chat-completions)
 - [Aliyun Bailian Platform](https://bailian.console.aliyun.com/)
 - [Qwen3-VL Documentation](https://help.aliyun.com/zh/model-studio/getting-started/models)
+- [Volcengine Ark](https://console.volcengine.com/ark)
+- [Tencent Hunyuan Platform](https://cloud.tencent.com/product/hunyuan)
 - [MCP Protocol Documentation](https://modelcontextprotocol.io/)
 
 ## Changelog

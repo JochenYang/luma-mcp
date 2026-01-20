@@ -1,46 +1,90 @@
 /**
- * 阿里云 Qwen VL 客户端
+ * 腾讯混元视觉 API 客户端
+ * api文档：https://cloud.tencent.com/document/product/1729/101848
  * OpenAI 兼容接口
- * 文档: https://help.aliyun.com/zh/model-studio/vision
  */
 
 import axios, { AxiosInstance } from "axios";
-import { VisionClient } from "./vision-client.js";
+import type { VisionClient } from "./vision-client.js";
 import type { LumaConfig } from "./config.js";
 import { logger } from "./utils/logger.js";
 
-export class QwenClient implements VisionClient {
+interface HunyuanMessage {
+  role: string;
+  content: Array<{
+    type: string;
+    text?: string;
+    image_url?: {
+      url: string;
+    };
+  }>;
+}
+
+interface HunyuanRequest {
+  model: string;
+  messages: HunyuanMessage[];
+  temperature: number;
+  max_tokens: number;
+  top_p: number;
+}
+
+interface HunyuanResponse {
+  id: string;
+  created: number;
+  model: string;
+  choices: Array<{
+    index: number;
+    message: {
+      role: string;
+      content: string;
+    };
+    finish_reason: string;
+  }>;
+  usage: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+}
+
+/**
+ * 混元视觉客户端
+ */
+export class HunyuanClient implements VisionClient {
   private client: AxiosInstance;
   private apiKey: string;
   private model: string;
   private maxTokens: number;
   private temperature: number;
+  private topP: number;
 
   constructor(config: LumaConfig) {
     this.apiKey = config.apiKey;
     this.model = config.model;
     this.maxTokens = config.maxTokens;
     this.temperature = config.temperature;
+    this.topP = config.topP;
 
-    // 使用阿里云百炼 OpenAI 兼容接口
     this.client = axios.create({
-      baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      baseURL: "https://api.hunyuan.cloud.tencent.com/v1",
       headers: {
         Authorization: `Bearer ${config.apiKey}`,
         "Content-Type": "application/json",
       },
-      timeout: 180000, // 180s timeout
+      timeout: 180000,
     });
   }
 
+  /**
+   * 分析图片
+   */
   async analyzeImage(
     imageDataUrl: string,
     prompt: string,
     enableThinking?: boolean
   ): Promise<string> {
     try {
-      // Qwen3-VL 通过 extra_body 启用思考模式
-      const requestBody: any = {
+      const requestBody: HunyuanRequest = {
         model: this.model,
         messages: [
           {
@@ -59,54 +103,56 @@ export class QwenClient implements VisionClient {
             ],
           },
         ],
-        max_tokens: this.maxTokens,
         temperature: this.temperature,
-        stream: false,
+        max_tokens: this.maxTokens,
+        top_p: this.topP,
       };
 
-      // 根据参数启用思考模式
-      if (enableThinking !== false) {
-        requestBody.extra_body = {
-          enable_thinking: true,
-          thinking_budget: 81920, // 最大思考 token 预算
-        };
-      }
-
-      logger.info("Calling Qwen3-VL API", {
+      logger.info("Calling Hunyuan Vision API", {
         model: this.model,
-        thinking: !!requestBody.extra_body,
+        thinking: enableThinking !== false,
       });
 
-      const response = await this.client.post("/chat/completions", requestBody);
+      const response = await this.client.post<HunyuanResponse>(
+        "/chat/completions",
+        requestBody
+      );
 
       if (!response.data?.choices?.[0]?.message?.content) {
-        throw new Error("Invalid response format from Qwen API");
+        throw new Error("Invalid response format from Hunyuan API");
       }
 
       const result = response.data.choices[0].message.content;
       const usage = response.data.usage;
 
-      logger.info("Qwen3-VL API call successful", {
+      logger.info("Hunyuan Vision API call successful", {
         tokens: usage?.total_tokens || 0,
         model: response.data.model,
       });
 
       return result;
     } catch (error) {
-      logger.error("Qwen3-VL API call failed", {
+      logger.error("Hunyuan Vision API call failed", {
         error: error instanceof Error ? error.message : String(error),
       });
 
       if (axios.isAxiosError(error)) {
         const errorMessage =
           error.response?.data?.error?.message || error.message;
-        throw new Error(`Qwen API error: ${errorMessage}`);
+        const status = error.response?.status;
+        throw new Error(
+          `Hunyuan API error (${status || "unknown"}): ${errorMessage}`
+        );
       }
+
       throw error;
     }
   }
 
+  /**
+   * 获取模型名称
+   */
   getModelName(): string {
-    return `Qwen (${this.model})`;
+    return `Hunyuan (${this.model})`;
   }
 }

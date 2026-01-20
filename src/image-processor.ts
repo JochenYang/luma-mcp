@@ -1,6 +1,6 @@
 /**
  * 图片处理工具
- * 负责读取、压缩和编码图片（支持本地文件和远程 URL）
+ * 读取、压缩并编码图片（本地文件与远程 URL）
  */
 
 import { readFile, stat } from "fs/promises";
@@ -8,7 +8,7 @@ import sharp from "sharp";
 import { isUrl } from "./utils/helpers.js";
 import { logger } from "./utils/logger.js";
 
-// 判断是否为 Data URI（data:image/png;base64,....）
+// 判断输入是否为 Data URI（data:image/png;base64,...）
 function isDataUri(input: string): boolean {
   return (
     typeof input === "string" &&
@@ -17,7 +17,7 @@ function isDataUri(input: string): boolean {
   );
 }
 
-// 从 Data URI 获取 mimeType
+// 从 Data URI 提取 mimeType
 function getMimeFromDataUri(input: string): string | null {
   const match = input.match(/^data:([^;]+);base64,/i);
   return match ? match[1].toLowerCase() : null;
@@ -27,7 +27,7 @@ function getMimeFromDataUri(input: string): string | null {
 function estimateBytesFromDataUri(input: string): number {
   try {
     const base64 = input.split(",")[1] || "";
-    // base64 长度 * 3/4，忽略 padding 近似即可
+    // base64 长度 * 3/4，忽略 padding 进行近似计算
     return Math.floor((base64.length * 3) / 4);
   } catch {
     return 0;
@@ -35,8 +35,8 @@ function estimateBytesFromDataUri(input: string): number {
 }
 
 /**
- * 规范化本地图像路径（例如去掉前缀符号）
- * 某些客户端会使用 "@path/to/file" 作为文件引用，这里统一转换为真实路径
+ * 规范化本地图片路径（例如移除前缀符号）
+ * 部分客户端使用 "@path/to/file" 引用，需要转为真实路径
  */
 function normalizeImageSourcePath(source: string): string {
   if (typeof source === "string" && source.startsWith("@")) {
@@ -51,22 +51,52 @@ function normalizeImageSourcePath(source: string): string {
 }
 
 /**
- * 验证图片来源（文件或URL）
+ * 校验图片来源（文件或 URL）
  */
 export async function validateImageSource(
   imageSource: string,
   maxSizeMB: number = 10
 ): Promise<void> {
-  // 先规范化可能带有前缀符号的本地路径（如 "@image.png"）
+  // 规范化本地路径（处理可能的前缀符号，如 "@image.png"）
   const normalizedSource = normalizeImageSourcePath(imageSource);
 
-  // 如果是 URL，直接返回
+  if (isDataUri(normalizedSource)) {
+    const mimeType = getMimeFromDataUri(normalizedSource);
+    const supportedMimeTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+    ];
+
+    if (!mimeType || !supportedMimeTypes.includes(mimeType)) {
+      throw new Error(
+        `Unsupported image format: ${mimeType || "unknown"}. Supported: ${supportedMimeTypes.join(
+          ", "
+        )}`
+      );
+    }
+
+    const bytes = estimateBytesFromDataUri(normalizedSource);
+    const maxBytes = maxSizeMB * 1024 * 1024;
+    if (bytes > maxBytes) {
+      throw new Error(
+        `Image file too large: ${(bytes / (1024 * 1024)).toFixed(
+          2
+        )}MB (max: ${maxSizeMB}MB)`
+      );
+    }
+
+    return;
+  }
+
+  // URL 直接跳过校验
   if (isUrl(normalizedSource)) {
     logger.debug("Image source is URL, skipping validation");
     return;
   }
 
-  // 验证本地文件
+  // 校验本地文件
   try {
     const stats = await stat(normalizedSource);
     const fileSizeMB = stats.size / (1024 * 1024);
@@ -77,7 +107,7 @@ export async function validateImageSource(
       );
     }
 
-    // 验证文件格式
+    // 校验文件格式
     const ext = normalizedSource.toLowerCase().split(".").pop();
     const supportedFormats = ["jpg", "jpeg", "png", "webp", "gif"];
 
@@ -97,35 +127,26 @@ export async function validateImageSource(
 }
 
 /**
- * 将图片转换为 base64 data URL 或返回URL
+ * 将图片转为 base64 Data URL 或直接返回 URL
  */
 export async function imageToBase64(imagePath: string): Promise<string> {
   try {
     // 规范化本地路径（处理可能的前缀符号）
     const normalizedPath = normalizeImageSourcePath(imagePath);
 
-    // 如果是 URL，直接返回
+    if (isDataUri(normalizedPath)) {
+      return normalizedPath;
+    }
+
+    // 直接返回 URL
     if (isUrl(normalizedPath)) {
       logger.info("Using remote image URL", { url: normalizedPath });
       return normalizedPath;
     }
 
-    // 本地文件：读取并编码
-    let imageBuffer: Buffer = await readFile(normalizedPath);
+    const result = await encodeLocalImage(normalizedPath);
 
-    // 检查文件大小，如果超过 2MB 则压缩
-    if (imageBuffer.length > 2 * 1024 * 1024) {
-      logger.info("Compressing large image", {
-        originalSize: `${(imageBuffer.length / (1024 * 1024)).toFixed(2)}MB`,
-      });
-      imageBuffer = Buffer.from(await compressImage(imageBuffer));
-    }
-
-    // 转换为 base64
-    const base64 = imageBuffer.toString("base64");
-    const mimeType = getMimeType(normalizedPath);
-
-    return `data:${mimeType};base64,${base64}`;
+    return `data:${result.mimeType};base64,${result.base64}`;
   } catch (error) {
     throw new Error(
       `Failed to process image: ${
@@ -135,17 +156,90 @@ export async function imageToBase64(imagePath: string): Promise<string> {
   }
 }
 
+export async function imageToBase64WithOptions(
+  imagePath: string,
+  options?: { preferText?: boolean }
+): Promise<string> {
+  try {
+    const normalizedPath = normalizeImageSourcePath(imagePath);
+
+    if (isDataUri(normalizedPath)) {
+      return normalizedPath;
+    }
+
+    if (isUrl(normalizedPath)) {
+      logger.info("Using remote image URL", { url: normalizedPath });
+      return normalizedPath;
+    }
+
+    const result = await encodeLocalImage(normalizedPath, options);
+
+    return `data:${result.mimeType};base64,${result.base64}`;
+  } catch (error) {
+    throw new Error(
+      `Failed to process image: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
+  }
+}
+
+async function encodeLocalImage(
+  normalizedPath: string,
+  options?: { preferText?: boolean }
+): Promise<{ base64: string; mimeType: string }> {
+  let imageBuffer: Buffer = await readFile(normalizedPath);
+  let mimeType = getMimeType(normalizedPath);
+
+  if (imageBuffer.length > 2 * 1024 * 1024) {
+    logger.info("Compressing large image", {
+      originalSize: `${(imageBuffer.length / (1024 * 1024)).toFixed(2)}MB`,
+    });
+    const compressed = await compressImage(
+      imageBuffer,
+      mimeType,
+      options?.preferText
+    );
+    imageBuffer = compressed.buffer;
+    mimeType = compressed.mimeType;
+  }
+
+  return {
+    base64: imageBuffer.toString("base64"),
+    mimeType,
+  };
+}
+
 /**
  * 压缩图片
  */
-async function compressImage(imageBuffer: Buffer): Promise<Buffer> {
-  return sharp(imageBuffer)
-    .resize(2048, 2048, {
-      fit: "inside",
-      withoutEnlargement: true,
-    })
-    .jpeg({ quality: 85 })
-    .toBuffer();
+async function compressImage(
+  imageBuffer: Buffer,
+  inputMimeType: string,
+  preferText?: boolean
+): Promise<{ buffer: Buffer; mimeType: string }> {
+  if (inputMimeType === "image/gif") {
+    return { buffer: imageBuffer, mimeType: inputMimeType };
+  }
+
+  const maxSize = preferText ? 3072 : 2048;
+  const pipeline = sharp(imageBuffer).resize(maxSize, maxSize, {
+    fit: "inside",
+    withoutEnlargement: true,
+  });
+
+  if (inputMimeType === "image/png") {
+    const buffer = await pipeline.png({ compressionLevel: preferText ? 3 : 6 }).toBuffer();
+    return { buffer, mimeType: "image/png" };
+  }
+
+  if (inputMimeType === "image/webp") {
+    const buffer = await pipeline.webp({ quality: preferText ? 90 : 85 }).toBuffer();
+    return { buffer, mimeType: "image/webp" };
+  }
+
+  const buffer = await pipeline.jpeg({ quality: preferText ? 90 : 85 }).toBuffer();
+  return { buffer, mimeType: "image/jpeg" };
 }
 
 /**

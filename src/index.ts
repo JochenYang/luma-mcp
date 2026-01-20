@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 /**
- * Luma MCP Server
- * 通用图像理解 MCP 服务器，支持多家视觉模型提供商
+ * Luma MCP 服务器
+ * 支持多提供商的通用视觉理解 MCP 服务器
  */
 
-// 第一件事：重定向console到stderr，避免污染MCP的stdout
+// 将 console 输出重定向到 stderr，避免污染 MCP stdout
 import { setupConsoleRedirection, logger } from "./utils/logger.js";
 setupConsoleRedirection();
 
@@ -19,7 +19,11 @@ import { ZhipuClient } from "./zhipu-client.js";
 import { SiliconFlowClient } from "./siliconflow-client.js";
 import { QwenClient } from "./qwen-client.js";
 import { VolcengineClient } from "./volcengine-client.js";
-import { imageToBase64, validateImageSource } from "./image-processor.js";
+import { HunyuanClient } from "./hunyuan-client.js";
+import {
+	imageToBase64WithOptions,
+	validateImageSource,
+} from "./image-processor.js";
 import {
 	withRetry,
 	createSuccessResponse,
@@ -27,25 +31,23 @@ import {
 } from "./utils/helpers.js";
 
 /**
- * Default base vision prompt used when BASE_VISION_PROMPT is not set.
- * This acts like a lightweight system prompt for image understanding.
+ * 当未设置 BASE_VISION_PROMPT 时使用的默认视觉提示词
+ * 作为轻量级系统提示词引导图像理解
  *
  * 设计目标：
- * - 优先输出基于截图“可见事实”的结构/布局信息
- * - 尽量减少凭经验猜测实现方式、性能、无障碍等不可见细节
+ * - 基于截图可见事实优先输出结构/布局
+ * - 避免猜测不可见细节（实现、性能等）
  */
 const DEFAULT_BASE_VISION_PROMPT = [
-	"你是一个专门帮助开发者理解截图内容的视觉结构分析助手。",
-	"你的首要目标是：基于截图中可见的信息，准确还原页面/界面的结构、布局和主要元素，而不是主观做视觉审美评价或猜测底层实现。",
-	"当用户提到“页面结构”、“页面架构”、“布局”、“组件树”、“还原界面”、“前端/客户端界面”等需求时，请遵循以下原则：",
-	"1. 先进行【事实描述】，只陈述从截图中可以直接观察到的内容（区域划分、布局方式、组件/控件、大致层级关系等）；不要推测不可见的信息，例如具体实现技术（JS/CSS/Canvas）、运行性能、无障碍属性（aria-*）、隐藏的交互状态（hover/focus/点击后的效果等）。",
-	"2. 描述布局时，尽量用有助于还原实现的方式组织信息，例如：顶部导航栏 / 左侧侧边栏 / 主内容区 / 底部栏、单栏/双栏/多栏、是否有固定头部等。",
-	"3. 如用户没有明确要求“设计点评/优化建议”，可以完全不写或只给最多 1～2 条简短、标明为“通用建议”的内容，且要明确说明这些建议无法仅凭截图确认当前是否已经做到。",
-	"4. 只在确实需要推测时才说明\"无法从截图确认\";对于可以直接观察到的内容,直接描述即可,无需添加任何免责声明。",
+	"你是一个专门帮助开发者理解截图内容的视觉理解助手。",
+	"目标：基于截图中可见信息进行高保真理解与回答。",
+	"当用户明确要求诊断、排错或推断时，可以基于可见证据做推断，并清晰标注不确定性与依据。",
+	"优先顺序：事实描述 → 文字/代码/数据提取 → 结构/布局 → 回答用户问题。",
+	"当用户描述过于简短时，自动执行全面提取并结构化输出。",
 ].join("\n");
 
 /**
- * Build full prompt by combining base vision prompt and user prompt.
+ * 拼接基础提示词与用户提示词
  */
 function buildFullPrompt(userPrompt: string, basePrompt?: string): string {
 	if (!basePrompt) {
@@ -62,6 +64,104 @@ function buildFullPrompt(userPrompt: string, basePrompt?: string): string {
 	return `${trimmedBase}\n\n用户任务描述：\n${trimmedUser}`;
 }
 
+type PromptProfile = {
+	isGenericShort: boolean;
+	wantsText: boolean;
+	wantsLayout: boolean;
+	wantsDiagnosis: boolean;
+	preferText: boolean;
+	needsTwoPass: boolean;
+	extractionOnly: boolean;
+};
+
+function getPromptProfile(userPrompt: string): PromptProfile {
+	const normalized = userPrompt.trim();
+	const isGenericShort =
+		/^(分析|查看|识别|描述|理解|看一下|看看|分析一下|请分析|analyze|describe|view|check)/i.test(
+			normalized
+		) && normalized.length < 30;
+	const wantsText = /(ocr|文字|文本|代码|日志|报错|堆栈|stack|trace|error|exception|表格|文档|识别)/i.test(
+		normalized
+	);
+	const wantsLayout = /(布局|结构|组件|页面|界面|架构|ui|layout|component|wireframe)/i.test(
+		normalized
+	);
+	const wantsDiagnosis = /(报错|错误|异常|崩溃|失败|error|exception|crash)/i.test(
+		normalized
+	);
+	const extractionOnly = /(只|仅).*(文字|文本|ocr|识别)/i.test(normalized) &&
+		!wantsLayout;
+	const preferText = wantsText || wantsDiagnosis || isGenericShort;
+	const needsTwoPass = isGenericShort || wantsDiagnosis || (wantsText && wantsLayout);
+
+	return {
+		isGenericShort,
+		wantsText,
+		wantsLayout,
+		wantsDiagnosis,
+		preferText,
+		needsTwoPass,
+		extractionOnly,
+	};
+}
+
+function buildStagePrompt(
+	stage: "extract" | "answer" | "single",
+	userPrompt: string,
+	basePrompt?: string,
+	extracted?: string
+): string {
+	const parts: string[] = [];
+	const trimmedBase = basePrompt?.trim();
+	if (trimmedBase) {
+		parts.push(trimmedBase);
+	}
+
+	if (stage === "extract") {
+		parts.push(
+			[
+				"请进行高密度可见信息提取：",
+				"1) 逐行完整提取所有可见文字、代码、日志、表格内容，保持原始顺序；",
+				"2) 描述主要区域与布局层次（上/下/左/右/主次区域）；",
+				"3) 列出关键UI元素/图表/按钮/状态标识；",
+				"只基于可见内容，不做无依据推测。",
+				"输出要求：使用清晰标题和列表，便于后续复用。",
+			].join("\n")
+		);
+	}
+
+	if (stage === "answer") {
+		parts.push(
+			[
+				"请基于可见信息与已提取信息回答用户问题。",
+				"如果需要推断，请明确标注推断并给出依据。",
+				"输出结构：先简要结论，再给要点。",
+			].join("\n")
+		);
+	}
+
+	if (stage === "single") {
+		parts.push(
+			[
+				"请基于可见信息回答用户问题。",
+				"若用户描述模糊，先进行完整提取再回答。",
+				"输出结构化。",
+			].join("\n")
+		);
+	}
+
+	if (extracted?.trim()) {
+		parts.push(`已提取信息：\n${extracted.trim()}`);
+	}
+
+	if (userPrompt.trim()) {
+		parts.push(`用户任务描述：\n${userPrompt.trim()}`);
+	}
+
+	return parts.join("\n\n");
+}
+
+
 /**
  * 创建 MCP 服务器
  */
@@ -73,7 +173,7 @@ async function createServer() {
 	const baseVisionPrompt =
 		config.baseVisionPrompt ?? DEFAULT_BASE_VISION_PROMPT;
 
-  // 根据配置选择模型客户端
+  // 按配置选择模型客户端
   let visionClient: VisionClient;
 
   if (config.provider === "siliconflow") {
@@ -82,6 +182,8 @@ async function createServer() {
     visionClient = new QwenClient(config);
   } else if (config.provider === "volcengine") {
     visionClient = new VolcengineClient(config);
+  } else if (config.provider === "hunyuan") {
+    visionClient = new HunyuanClient(config);
   } else {
     visionClient = new ZhipuClient(config);
   }
@@ -91,7 +193,7 @@ async function createServer() {
     model: visionClient.getModelName(),
   });
 
-  // 创建服务器 - 使用 McpServer
+  // 使用 McpServer 创建服务器
   const server = new McpServer(
     {
       name: "luma-mcp",
@@ -107,27 +209,62 @@ async function createServer() {
   // 创建带重试的分析函数
   const analyzeWithRetry = withRetry(
     async (imageSource: string, prompt: string) => {
-      // 1. 验证图片来源
+      // 1. 校验图片来源
       await validateImageSource(imageSource);
 
-	      // 2. 处理图片（读取或返回URL）
-	      const imageDataUrl = await imageToBase64(imageSource);
-	
-	      // 3. Build full prompt from base vision prompt and user prompt
-	      const fullPrompt = buildFullPrompt(prompt, baseVisionPrompt);
+      const profile = getPromptProfile(prompt);
 
-      // 4. 调用视觉模型分析图片
+	      const imageDataUrl = await imageToBase64WithOptions(imageSource, {
+	      	preferText: profile.preferText,
+	      });
+
+	      if (profile.needsTwoPass) {
+	      	const extractPrompt = buildStagePrompt(
+	      		"extract",
+	      		profile.extractionOnly ? prompt : "",
+	      		baseVisionPrompt
+	      	);
+	      	const extracted = await visionClient.analyzeImage(
+	      		imageDataUrl,
+	      		extractPrompt,
+	      		config.enableThinking
+	      	);
+
+	      	if (profile.extractionOnly) {
+	      		return extracted;
+	      	}
+
+	      	const answerPrompt = buildStagePrompt(
+	      		"answer",
+	      		prompt,
+	      		baseVisionPrompt,
+	      		extracted
+	      	);
+
+	      	return await visionClient.analyzeImage(
+	      		imageDataUrl,
+	      		answerPrompt,
+	      		config.enableThinking
+	      	);
+	      }
+
+	      const singlePrompt = buildStagePrompt(
+	      	"single",
+	      	prompt,
+	      	baseVisionPrompt
+	      );
+
       return await visionClient.analyzeImage(
         imageDataUrl,
-        fullPrompt,
+        singlePrompt,
         config.enableThinking
       );
     },
-    2, // 最多重试2次
-    1000 // 初始延补1秒
+    2, // 最大重试次数: 2
+    1000 // 初始退避: 1s
   );
 
-	  // 注册工具 - 使用 McpServer.tool() API
+	  // 使用 McpServer.tool() 注册工具
 	  server.tool(
 	    "analyze_image",
 	    `图像分析工具：
@@ -154,7 +291,7 @@ async function createServer() {
     },
     async (params) => {
       try {
-        // AI应该已经根据用户问题生成了合适的prompt
+        // Prompt 已根据用户请求准备
         const prompt = params.prompt;
 
         logger.info("Analyzing image", {
@@ -162,7 +299,7 @@ async function createServer() {
           prompt,
         });
 
-        // 执行分析（带重试）
+        // 使用重试执行分析
         const result = await analyzeWithRetry(params.image_source, prompt);
 
         logger.info("Image analysis completed successfully");
@@ -183,7 +320,7 @@ async function createServer() {
 }
 
 /**
- * 主函数
+ * 主入口
  */
 async function main() {
   try {
