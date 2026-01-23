@@ -460,14 +460,16 @@ analyze_image({
 
 ### General Configuration
 
-| Variable          | Required | Default   | Description                                                             |
-|-------------------|----------|-----------|-------------------------------------------------------------------------|
-| `MODEL_PROVIDER`  | No       | `zhipu`   | Model provider: `zhipu`, `siliconflow`, `qwen`, `volcengine`, `hunyuan` |
-| `MODEL_NAME`      | No       | See below | Model name (auto-selected based on provider)                            |
-| `MAX_TOKENS`      | No       | `16384`   | Maximum tokens to generate                                              |
-| `TEMPERATURE`     | No       | `0.7`     | Temperature (0-1)                                                       |
-| `TOP_P`           | No       | `0.7`     | Top-p parameter (0-1)                                                   |
-| `ENABLE_THINKING` | No       | `true`    | Enable thinking mode (GLM-4.6V, Qwen3-VL-Flash, Doubao-Seed-1.6)        |
+| Variable               | Required | Default   | Description                                                             |
+|------------------------|----------|-----------|-------------------------------------------------------------------------|
+| `MODEL_PROVIDER`       | No       | `zhipu`   | Model provider: `zhipu`, `siliconflow`, `qwen`, `volcengine`, `hunyuan` |
+| `MODEL_NAME`           | No       | See below | Model name (auto-selected based on provider)                            |
+| `MAX_TOKENS`           | No       | `16384`   | Maximum tokens to generate                                              |
+| `TEMPERATURE`          | No       | `0.7`     | Temperature (0-1)                                                       |
+| `TOP_P`                | No       | `0.7`     | Top-p parameter (0-1)                                                   |
+| `ENABLE_THINKING`      | No       | `true`    | Enable thinking mode (GLM-4.6V, Qwen3-VL-Flash, Doubao-Seed-1.6)        |
+| `MULTI_CROP`           | No       | `true`    | Enable multi-crop analysis for large text-heavy images                  |
+| `MULTI_CROP_MAX_TILES` | No       | `5`       | Max crop tiles (including original)                                     |
 
 ### Zhipu GLM-4.6V Specific
 

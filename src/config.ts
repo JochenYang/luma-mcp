@@ -13,6 +13,8 @@ export interface LumaConfig {
 	temperature: number;
 	topP: number;
 	enableThinking: boolean;
+	multiCropEnabled: boolean;
+	multiCropMaxTiles: number;
 	baseVisionPrompt?: string;
 }
 
@@ -72,6 +74,8 @@ export function loadConfig(): LumaConfig {
     temperature: parseFloat(process.env.TEMPERATURE || '0.7'),
     topP: parseFloat(process.env.TOP_P || '0.7'),
 		enableThinking: process.env.ENABLE_THINKING !== 'false',
+		multiCropEnabled: process.env.MULTI_CROP !== 'false',
+		multiCropMaxTiles: parseInt(process.env.MULTI_CROP_MAX_TILES || '5', 10),
 		baseVisionPrompt: process.env.BASE_VISION_PROMPT,
   };
 }

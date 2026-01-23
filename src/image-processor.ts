@@ -184,6 +184,95 @@ export async function imageToBase64WithOptions(
   }
 }
 
+export async function imageToBase64Variants(
+  imagePath: string,
+  options?: { preferText?: boolean; maxTiles?: number }
+): Promise<string[]> {
+  try {
+    const normalizedPath = normalizeImageSourcePath(imagePath);
+
+    if (isDataUri(normalizedPath)) {
+      return [normalizedPath];
+    }
+
+    if (isUrl(normalizedPath)) {
+      logger.info("Using remote image URL", { url: normalizedPath });
+      return [normalizedPath];
+    }
+
+    const imageBuffer: Buffer = await readFile(normalizedPath);
+    const mimeType = getMimeType(normalizedPath);
+
+    if (mimeType === "image/gif") {
+      const full = await encodeBufferToDataUrl(
+        imageBuffer,
+        mimeType,
+        options?.preferText
+      );
+      return [full];
+    }
+
+    const metadata = await sharp(imageBuffer).metadata();
+    const width = metadata.width ?? 0;
+    const height = metadata.height ?? 0;
+
+    if (!width || !height) {
+      const full = await encodeBufferToDataUrl(
+        imageBuffer,
+        mimeType,
+        options?.preferText
+      );
+      return [full];
+    }
+
+    const shouldSplit =
+      Math.max(width, height) >= 1800 || width * height >= 3500000;
+
+    const full = await encodeBufferToDataUrl(
+      imageBuffer,
+      mimeType,
+      options?.preferText
+    );
+
+    if (!shouldSplit) {
+      return [full];
+    }
+
+    const rows = 2;
+    const cols = 2;
+    const tileWidth = Math.floor(width / cols);
+    const tileHeight = Math.floor(height / rows);
+    const tiles: string[] = [];
+
+    for (let row = 0; row < rows; row += 1) {
+      for (let col = 0; col < cols; col += 1) {
+        const left = col * tileWidth;
+        const top = row * tileHeight;
+        const currentWidth = col === cols - 1 ? width - left : tileWidth;
+        const currentHeight = row === rows - 1 ? height - top : tileHeight;
+        const tileBuffer = await sharp(imageBuffer)
+          .extract({ left, top, width: currentWidth, height: currentHeight })
+          .toBuffer();
+        const tileDataUrl = await encodeBufferToDataUrl(
+          tileBuffer,
+          mimeType,
+          options?.preferText
+        );
+        tiles.push(tileDataUrl);
+      }
+    }
+
+    const maxTiles = Math.max(1, options?.maxTiles ?? 5);
+    return [full, ...tiles].slice(0, maxTiles);
+  } catch (error) {
+    throw new Error(
+      `Failed to process image: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
+  }
+}
+
 async function encodeLocalImage(
   normalizedPath: string,
   options?: { preferText?: boolean }
@@ -208,6 +297,23 @@ async function encodeLocalImage(
     base64: imageBuffer.toString("base64"),
     mimeType,
   };
+}
+
+async function encodeBufferToDataUrl(
+  imageBuffer: Buffer,
+  inputMimeType: string,
+  preferText?: boolean
+): Promise<string> {
+  let buffer = imageBuffer;
+  let mimeType = inputMimeType;
+
+  if (buffer.length > 2 * 1024 * 1024) {
+    const compressed = await compressImage(buffer, mimeType, preferText);
+    buffer = compressed.buffer;
+    mimeType = compressed.mimeType;
+  }
+
+  return `data:${mimeType};base64,${buffer.toString("base64")}`;
 }
 
 /**

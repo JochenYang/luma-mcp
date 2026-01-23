@@ -21,7 +21,7 @@ import { QwenClient } from "./qwen-client.js";
 import { VolcengineClient } from "./volcengine-client.js";
 import { HunyuanClient } from "./hunyuan-client.js";
 import {
-	imageToBase64WithOptions,
+	imageToBase64Variants,
 	validateImageSource,
 } from "./image-processor.js";
 import {
@@ -161,6 +161,23 @@ function buildStagePrompt(
 	return parts.join("\n\n");
 }
 
+async function extractWithVariants(
+	variants: string[],
+	prompt: string,
+	visionClient: VisionClient,
+	enableThinking: boolean
+): Promise<string> {
+	const results = await Promise.all(
+		variants.map((variant) =>
+			visionClient.analyzeImage(variant, prompt, enableThinking)
+		)
+	);
+
+	return results
+		.map((result, index) => `区域 ${index + 1}：\n${result}`)
+		.join("\n\n");
+}
+
 
 /**
  * 创建 MCP 服务器
@@ -214,9 +231,13 @@ async function createServer() {
 
       const profile = getPromptProfile(prompt);
 
-	      const imageDataUrl = await imageToBase64WithOptions(imageSource, {
+	      const variants = await imageToBase64Variants(imageSource, {
 	      	preferText: profile.preferText,
+	      	maxTiles: config.multiCropMaxTiles,
 	      });
+	      const imageDataUrl = variants[0];
+	      const useVariants =
+	      	variants.length > 1 && profile.preferText && config.multiCropEnabled;
 
 	      if (profile.needsTwoPass) {
 	      	const extractPrompt = buildStagePrompt(
@@ -224,11 +245,18 @@ async function createServer() {
 	      		profile.extractionOnly ? prompt : "",
 	      		baseVisionPrompt
 	      	);
-	      	const extracted = await visionClient.analyzeImage(
-	      		imageDataUrl,
-	      		extractPrompt,
-	      		config.enableThinking
-	      	);
+	      	const extracted = useVariants
+	      		? await extractWithVariants(
+	      			variants,
+	      			extractPrompt,
+	      			visionClient,
+	      			config.enableThinking
+	      		)
+	      		: await visionClient.analyzeImage(
+	      			imageDataUrl,
+	      			extractPrompt,
+	      			config.enableThinking
+	      		);
 
 	      	if (profile.extractionOnly) {
 	      		return extracted;
@@ -244,6 +272,32 @@ async function createServer() {
 	      	return await visionClient.analyzeImage(
 	      		imageDataUrl,
 	      		answerPrompt,
+	      		config.enableThinking
+	      	);
+	      }
+
+	      if (useVariants) {
+	      	const extractPrompt = buildStagePrompt(
+	      		"extract",
+	      		"",
+	      		baseVisionPrompt
+	      	);
+	      	const extracted = await extractWithVariants(
+	      		variants,
+	      		extractPrompt,
+	      		visionClient,
+	      		config.enableThinking
+	      	);
+	      	const singlePrompt = buildStagePrompt(
+	      		"single",
+	      		prompt,
+	      		baseVisionPrompt,
+	      		extracted
+	      	);
+
+	      	return await visionClient.analyzeImage(
+	      		imageDataUrl,
+	      		singlePrompt,
 	      		config.enableThinking
 	      	);
 	      }

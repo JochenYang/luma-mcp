@@ -472,14 +472,16 @@ analyze_image({
 
 ### 通用配置
 
-| 变量名            | 必需 | 默认值  | 说明                                                           |
-|-------------------|------|---------|----------------------------------------------------------------|
-| `MODEL_PROVIDER`  | 否   | `zhipu` | 模型提供商：`zhipu`、`siliconflow`、`qwen`、`volcengine`、`hunyuan` |
-| `MODEL_NAME`      | 否   | 见下文  | 模型名称（自动根据提供商选择）                                   |
-| `MAX_TOKENS`      | 否   | `16384` | 最大生成 tokens                                                |
-| `TEMPERATURE`     | 否   | `0.7`   | 温度参数 (0-1)                                                 |
-| `TOP_P`           | 否   | `0.7`   | Top-p 参数 (0-1)                                               |
-| `ENABLE_THINKING` | 否   | `true`  | 是否启用思考模式（GLM-4.6V、Qwen3-VL-Flash、Doubao-Seed-1.6）      |
+| 变量名                 | 必需 | 默认值  | 说明                                                           |
+|------------------------|------|---------|----------------------------------------------------------------|
+| `MODEL_PROVIDER`       | 否   | `zhipu` | 模型提供商：`zhipu`、`siliconflow`、`qwen`、`volcengine`、`hunyuan` |
+| `MODEL_NAME`           | 否   | 见下文  | 模型名称（自动根据提供商选择）                                   |
+| `MAX_TOKENS`           | 否   | `16384` | 最大生成 tokens                                                |
+| `TEMPERATURE`          | 否   | `0.7`   | 温度参数 (0-1)                                                 |
+| `TOP_P`                | 否   | `0.7`   | Top-p 参数 (0-1)                                               |
+| `ENABLE_THINKING`      | 否   | `true`  | 是否启用思考模式（GLM-4.6V、Qwen3-VL-Flash、Doubao-Seed-1.6）      |
+| `MULTI_CROP`           | 否   | `true`  | 是否启用多裁剪分析（大图文字场景）                               |
+| `MULTI_CROP_MAX_TILES` | 否   | `5`     | 多裁剪最大分片数（含原图）                                       |
 
 ### 智谱 GLM-4.6V 专用
 
