@@ -2,6 +2,23 @@
 
 本项目的所有重大变更都将记录在此文件中。
 
+## [1.3.5] - 2026-02-14
+
+### Changed
+
+- 🔄 **工具重命名与定位升级**: 将 `analyze_image` 重命名为 `image_understand`，从单纯的"分析"升级为"理解"，更能体现大模型的认知能力。
+- 🧠 **视觉认知协议 v2.0**: 引入全新的内部视觉认知协议 (Visual Cognitive Protocol)，强制模型执行严谨的分析流程：
+  - **场景分类**: 自动识别图片类型（UI/Photo/Code）。
+  - **空间扫描**: 强制进行 Vertical/Horizontal 结构分析，根治空间幻觉。
+  - **异常归因**: 引入通用规则判断"截断"与"缺损"，解决模型显示不全的误判问题。
+
+### Technical Details
+
+- `src/index.ts`:
+  - 工具注册名从 `analyze_image` 变更为 `image_understand`。
+  - 显示名称更新为 `图像理解工具`。
+  - 系统 Prompt 完全重构，植入 `Visual Cognitive Protocol` 逻辑。
+
 ## [1.3.4] - 2026-01-06
 
 ### Changed
@@ -28,12 +45,14 @@
 ### Rationale
 
 v1.3.2/v1.3.3 引入的"优化"实际上:
+
 - 增加了不必要的复杂度 (200+ 行额外代码)
 - 增加了 API 调用次数和成本 (两阶段调用)
 - 重复造轮子 (手动图片分块,而模型已内置高分辨率处理)
 - 限制了模型的自然理解能力 (过度的意图分类和 prompt 工程)
 
 回退后的实现:
+
 - ✅ 代码量减少 60%,逻辑清晰
 - ✅ 一次调用完成,延迟和成本更低
 - ✅ 完全发挥原生多模态模型能力
@@ -47,7 +66,7 @@ v1.3.2/v1.3.3 引入的"优化"实际上:
   2. 处理图片 (读取或返回 URL)
   3. 拼接优化后的基础提示词和用户提示词
   4. 一次调用视觉模型完成分析
-- `src/config.ts`: 
+- `src/config.ts`:
   - 删除 `multiCropEnabled` 和 `multiCropMaxTiles` 字段
   - 移除启动时的 API Key 强制检查,改为返回空字符串允许服务器启动
 - `DEFAULT_BASE_VISION_PROMPT`: 从限制性规则改为激发性指引,更好地发挥原生多模态能力
@@ -95,7 +114,7 @@ v1.3.2/v1.3.3 引入的"优化"实际上:
 ### Changed
 
 - ✨ **视觉基础提示词优化**: 重写默认视觉系统提示词，强调基于截图中可见事实进行结构/布局/组件分析，减少对实现细节和不可见交互的主观猜测
-- 📝 **工具说明收紧边界**: 更新 `analyze_image` 工具描述，建议上层模型直接传入用户原始问题，避免重复封装复杂视觉 prompt
+- 📝 **工具说明收紧边界**: 更新 `image_understand` 工具描述，建议上层模型直接传入用户原始问题，避免重复封装复杂视觉 prompt
 
 ### Technical Details
 
@@ -120,11 +139,11 @@ v1.3.2/v1.3.3 引入的"优化"实际上:
 
 - `src/index.ts`: 在 analyzeWithRetry 中正确传递 config.enableThinking 参数
 - `src/zhipu-client.ts`: 重构 thinking 逻辑，使用 `if (enableThinking !== false)` 统一判断
-- `src/qwen-client.ts`: 
+- `src/qwen-client.ts`:
   - 统一 thinking 启用逻辑为 `if (enableThinking !== false)`
   - 新增 logger 导入和 API 调用日志
   - 添加成功/失败日志记录
-- `src/volcengine-client.ts`: 
+- `src/volcengine-client.ts`:
   - 新增 thinking 参数支持到 VolcengineRequest 接口
   - 实现 thinking 模式启用逻辑
   - 更新日志记录以反映实际 thinking 状态
@@ -134,11 +153,11 @@ v1.3.2/v1.3.3 引入的"优化"实际上:
 现在所有支持的模型都正确启用思考模式：
 
 | 模型                  | Thinking 支持 | 实现方式                        | 默认状态 |
-|-----------------------|---------------|---------------------------------|----------|
-| 智谱 GLM-4.6V         | ✅             | `thinking: { type: "enabled" }` | 启用     |
-| 千问 Qwen3-VL         | ✅             | `extra_body.enable_thinking`    | 启用     |
-| 火山方舟 Doubao       | ✅             | `thinking: { type: "enabled" }` | 启用     |
-| 硅基流动 DeepSeek-OCR | ❌             | 不支持                          | N/A      |
+| --------------------- | ------------- | ------------------------------- | -------- |
+| 智谱 GLM-4.6V         | ✅            | `thinking: { type: "enabled" }` | 启用     |
+| 千问 Qwen3-VL         | ✅            | `extra_body.enable_thinking`    | 启用     |
+| 火山方舟 Doubao       | ✅            | `thinking: { type: "enabled" }` | 启用     |
+| 硅基流动 DeepSeek-OCR | ❌            | 不支持                          | N/A      |
 
 用户可通过 `ENABLE_THINKING=false` 环境变量禁用思考模式以提升速度和降低成本。
 

@@ -12,7 +12,7 @@ English | [中文](../README.md)
   - Qwen3-VL-Flash (Aliyun) - Paid, fast and cost-effective, supports thinking mode
   - Doubao-Seed-1.6 (Volcengine) - Paid, cost-effective, supports multiple versions
   - Hunyuan-Vision-1.5 (Tencent) - Paid, strong multi-modal reasoning, great multilingual performance
-- **Simple Design**: Single `analyze_image` tool handles all image analysis tasks
+- **Simple Design**: Single `image_understand` tool handles all image analysis tasks
 - **Smart Understanding**: Automatically recognizes different scenarios (code, UI, errors, etc.)
 - **Comprehensive Support**: Code screenshots, UI design, error diagnosis, OCR text recognition
 - **Standard MCP Protocol**: Seamless integration with Claude Desktop, Cline, and other MCP clients
@@ -290,26 +290,31 @@ Create `mcp.json` in project root or `.vscode/` directory
 #### Claude Code (CLI)
 
 **Using Zhipu GLM-4.6V**:
+
 ```bash
 claude mcp add -s user luma-mcp --env ZHIPU_API_KEY=your-api-key -- npx -y luma-mcp
 ```
 
 **Using SiliconFlow DeepSeek-OCR (Free)**:
+
 ```bash
 claude mcp add -s user luma-mcp --env MODEL_PROVIDER=siliconflow --env SILICONFLOW_API_KEY=your-api-key -- npx -y luma-mcp
 ```
 
 **Using Aliyun Qwen3-VL-Flash**:
+
 ```bash
 claude mcp add -s user luma-mcp --env MODEL_PROVIDER=qwen --env DASHSCOPE_API_KEY=your-api-key -- npx -y luma-mcp
 ```
 
 **Using Volcengine Doubao-Seed-1.6**:
+
 ```bash
 claude mcp add -s user luma-mcp --env MODEL_PROVIDER=volcengine --env VOLCENGINE_API_KEY=your-api-key --env MODEL_NAME=doubao-seed-1-6-flash-250828 -- npx -y luma-mcp
 ```
 
 **Using Tencent Hunyuan-Vision-1.5**:
+
 ```bash
 claude mcp add -s user luma-mcp --env MODEL_PROVIDER=hunyuan --env HUNYUAN_API_KEY=your-api-key --env MODEL_NAME=hunyuan-t1-vision-20250916 -- npx -y luma-mcp
 ```
@@ -323,13 +328,15 @@ For more MCP client configuration methods, refer to [Zhipu Official Documentatio
 ### Important Notes
 
 **MCP Tool Invocation Mechanism**:
+
 - MCP tools require the AI model to **actively call** them to execute
 - If the AI model itself supports vision (like Claude 4.5 Sonnet), it will prioritize its native vision capabilities
 - Luma MCP primarily serves **non-vision models** (like GPT-4, Claude Opus, etc.)
 
 **How to Ensure Tool Invocation**:
-1. Use full tool name: `Use mcp__luma-mcp__analyze_image tool to analyze this image`
-2. Use simplified name: `Use analyze_image tool to view ./screenshot.png`
+
+1. Use full tool name: `Use mcp__luma-mcp__image_understand tool to analyze this image`
+2. Use simplified name: `Use image_understand tool to view ./screenshot.png`
 3. Provide image path: `Use image analysis tool to check ./screenshot.png for code errors`
 4. Mention server explicitly: `Analyze this image via luma-mcp server`
 
@@ -340,15 +347,17 @@ For more MCP client configuration methods, refer to [Zhipu Official Documentatio
 After configuration, use it in Claude conversations like this:
 
 **Recommended Usage (Explicit Instruction)**:
+
 ```
 User: Use Luma to analyze ./code-error.png, why is this code throwing an error?
 Claude: [Calls Luma to analyze the image and returns detailed analysis]
 ```
 
 **Or Provide Image Path**:
+
 ```
 User: Please analyze the interface issues in https://example.com/screenshot.jpg
-Claude: [Automatically calls analyze_image tool]
+Claude: [Automatically calls image_understand tool]
 ```
 
 ### Local Testing
@@ -356,6 +365,7 @@ Claude: [Automatically calls analyze_image tool]
 Test without MCP clients:
 
 **Test Zhipu GLM-4.6V**:
+
 ```bash
 # Set API Key
 export ZHIPU_API_KEY="your-api-key"  # macOS/Linux
@@ -366,6 +376,7 @@ npm run test:local ./test.png
 ```
 
 **Test SiliconFlow DeepSeek-OCR**:
+
 ```bash
 # Set API Key and provider
 export MODEL_PROVIDER=siliconflow
@@ -379,6 +390,7 @@ npm run test:local ./test.png
 ```
 
 **Test Aliyun Qwen3-VL-Flash**:
+
 ```bash
 # Set API Key and provider
 export MODEL_PROVIDER=qwen
@@ -392,6 +404,7 @@ npm run test:local ./test.png
 ```
 
 **Test Tencent Hunyuan-Vision-1.5**:
+
 ```bash
 # Set API Key and provider
 export MODEL_PROVIDER=hunyuan
@@ -405,6 +418,7 @@ npm run test:local ./test.png
 ```
 
 **Other test commands**:
+
 ```bash
 # Test with question
 npm run test:local ./code-error.png "What's wrong with this code?"
@@ -415,7 +429,7 @@ npm run test:local https://example.com/image.jpg
 
 ## Tool Reference
 
-### analyze_image
+### image_understand
 
 Universal tool for analyzing image content.
 
@@ -432,28 +446,28 @@ Universal tool for analyzing image content.
 
 ```typescript
 // General analysis
-analyze_image({
+image_understand({
   image_source: "./screenshot.png",
-  prompt: "Please analyze this image in detail"
-})
+  prompt: "Please analyze this image in detail",
+});
 
 // Code analysis
-analyze_image({
+image_understand({
   image_source: "./code-error.png",
-  prompt: "Why is this code throwing an error? Provide fix suggestions"
-})
+  prompt: "Why is this code throwing an error? Provide fix suggestions",
+});
 
 // UI analysis
-analyze_image({
+image_understand({
   image_source: "https://example.com/ui.png",
-  prompt: "Analyze the layout and usability issues of this interface"
-})
+  prompt: "Analyze the layout and usability issues of this interface",
+});
 
 // Data URI (when client supports it)
-analyze_image({
+image_understand({
   image_source: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA...",
-  prompt: "Extract all text from the image"
-})
+  prompt: "Extract all text from the image",
+});
 ```
 
 ## Environment Variables
@@ -461,7 +475,7 @@ analyze_image({
 ### General Configuration
 
 | Variable               | Required | Default   | Description                                                             |
-|------------------------|----------|-----------|-------------------------------------------------------------------------|
+| ---------------------- | -------- | --------- | ----------------------------------------------------------------------- |
 | `MODEL_PROVIDER`       | No       | `zhipu`   | Model provider: `zhipu`, `siliconflow`, `qwen`, `volcengine`, `hunyuan` |
 | `MODEL_NAME`           | No       | See below | Model name (auto-selected based on provider)                            |
 | `MAX_TOKENS`           | No       | `16384`   | Maximum tokens to generate                                              |
@@ -474,7 +488,7 @@ analyze_image({
 ### Zhipu GLM-4.6V Specific
 
 | Variable        | Required               | Default | Description      |
-|-----------------|------------------------|---------|------------------|
+| --------------- | ---------------------- | ------- | ---------------- |
 | `ZHIPU_API_KEY` | Yes (when using Zhipu) | -       | Zhipu AI API key |
 
 Default model: `glm-4.6v`
@@ -482,7 +496,7 @@ Default model: `glm-4.6v`
 ### SiliconFlow DeepSeek-OCR Specific
 
 | Variable              | Required                     | Default | Description         |
-|-----------------------|------------------------------|---------|---------------------|
+| --------------------- | ---------------------------- | ------- | ------------------- |
 | `SILICONFLOW_API_KEY` | Yes (when using SiliconFlow) | -       | SiliconFlow API key |
 
 Default model: `deepseek-ai/DeepSeek-OCR`
@@ -490,7 +504,7 @@ Default model: `deepseek-ai/DeepSeek-OCR`
 ### Aliyun Qwen3-VL-Flash Specific
 
 | Variable            | Required              | Default | Description            |
-|---------------------|-----------------------|---------|------------------------|
+| ------------------- | --------------------- | ------- | ---------------------- |
 | `DASHSCOPE_API_KEY` | Yes (when using Qwen) | -       | Aliyun Bailian API key |
 
 Default model: `qwen3-vl-flash`
@@ -498,7 +512,7 @@ Default model: `qwen3-vl-flash`
 ### Volcengine Doubao-Seed-1.6 Specific
 
 | Variable             | Required                    | Default | Description        |
-|----------------------|-----------------------------|---------|--------------------|
+| -------------------- | --------------------------- | ------- | ------------------ |
 | `VOLCENGINE_API_KEY` | Yes (when using Volcengine) | -       | Volcengine API key |
 
 Default model: `doubao-seed-1-6-flash-250828`
@@ -506,7 +520,7 @@ Default model: `doubao-seed-1-6-flash-250828`
 ### Tencent Hunyuan-Vision-1.5 Specific
 
 | Variable          | Required                 | Default | Description             |
-|-------------------|--------------------------|---------|-------------------------|
+| ----------------- | ------------------------ | ------- | ----------------------- |
 | `HUNYUAN_API_KEY` | Yes (when using Hunyuan) | -       | Tencent Hunyuan API key |
 
 Default model: `hunyuan-t1-vision-20250916`
@@ -514,6 +528,7 @@ Default model: `hunyuan-t1-vision-20250916`
 Optional model: `HY-vision-1.5-instruct`
 
 **Thinking Mode**:
+
 - Enabled by default for better accuracy and detailed analysis
 - To disable (faster speed, lower cost), set in config:
   ```json
@@ -580,30 +595,35 @@ luma-mcp/
 ### How to get API Key?
 
 **Zhipu GLM-4.6V**:
+
 1. Visit [Zhipu Open Platform](https://open.bigmodel.cn/)
 2. Register/Login
 3. Go to console and create API Key
 4. Copy API Key to configuration file
 
 **SiliconFlow DeepSeek-OCR (Free)**:
+
 1. Visit [SiliconFlow Platform](https://cloud.siliconflow.cn/)
 2. Register/Login
 3. Go to API management and create API Key
 4. Copy API Key to configuration file
 
 **Aliyun Qwen3-VL-Flash**:
+
 1. Visit [Aliyun Bailian Platform](https://bailian.console.aliyun.com/)
 2. Register/Login
 3. Go to API-KEY management and create API Key
 4. Copy API Key to configuration file
 
 **Volcengine Doubao-Seed-1.6**:
+
 1. Visit [Volcengine Console](https://console.volcengine.com/ark)
 2. Register/Login
 3. Go to API Key management and create API Key
 4. Copy API Key to configuration file
 
 **Tencent Hunyuan-Vision-1.5**:
+
 1. Visit [Tencent Hunyuan Console](https://cloud.tencent.com/product/hunyuan)
 2. Register/Login
 3. Go to API Key management and create API Key
@@ -616,11 +636,13 @@ Supports JPG, PNG, WebP, GIF. JPG format is recommended for better compression.
 ### What is a Data URI?
 
 A Data URI is a way to embed image data into a string, formatted as:
+
 ```
 data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA...
 ```
 
 **Use cases**:
+
 - When MCP clients (like Claude Desktop) support it, can directly pass user-pasted images
 - No need to save as temporary files, more efficient
 - Current status: **Server supports**, waiting for client implementation
@@ -651,6 +673,7 @@ Log file location: `~/.luma-mcp/luma-mcp-YYYY-MM-DD.log`
 **Aliyun Qwen3-VL-Flash**: For pricing, refer to [Aliyun Bailian Pricing](https://help.aliyun.com/zh/model-studio/getting-started/models).
 
 Typical scenario estimates:
+
 - Simple image understanding: 500-1000 tokens
 - Code screenshot analysis: 1500-2500 tokens
 - Detailed UI analysis: 2000-3000 tokens
@@ -660,7 +683,7 @@ Enabling thinking mode (GLM-4.6V/Qwen3-VL-Flash) increases tokens by approximate
 ### How to choose a model?
 
 | Feature           | GLM-4.6V (Zhipu) | DeepSeek-OCR (SiliconFlow) | Qwen3-VL-Flash (Aliyun)       | Doubao-Seed-1.6 (Volcengine)    | Hunyuan-Vision-1.5 (Tencent)                              |
-|-------------------|------------------|----------------------------|-------------------------------|---------------------------------|-----------------------------------------------------------|
+| ----------------- | ---------------- | -------------------------- | ----------------------------- | ------------------------------- | --------------------------------------------------------- |
 | **Cost**          | Paid             | **Completely Free**        | Paid                          | Paid                            | Paid                                                      |
 | **Chinese**       | Excellent        | Good                       | **Excellent**                 | Excellent                       | **Excellent**                                             |
 | **OCR**           | Good             | **Excellent**              | Excellent                     | Good                            | Excellent                                                 |
@@ -669,6 +692,7 @@ Enabling thinking mode (GLM-4.6V/Qwen3-VL-Flash) increases tokens by approximate
 | **Use Cases**     | General analysis | OCR, Text recognition      | Fast analysis, 3D positioning | Cost-effective general analysis | Complex multi-modal reasoning, multilingual understanding |
 
 **Recommendations**:
+
 - Need OCR/text recognition → **DeepSeek-OCR** (free)
 - Need fast and cost-effective analysis → **Qwen3-VL-Flash**
 - Need cost-effective general analysis → **Doubao-Seed-1.6**

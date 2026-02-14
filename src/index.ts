@@ -37,17 +37,23 @@ import {
  * - 不限制模型的自然推理和判断
  */
 const DEFAULT_BASE_VISION_PROMPT = [
-  "你是一个专业的视觉理解助手,帮助开发者分析截图内容。",
-  "请充分发挥你的视觉理解能力,仔细观察图片中的所有细节。",
+  "Role: You are an advanced Visual Analysis Engine. Your goal is to provide a rigorous, objective, and structured analysis of visual content.",
   "",
-  "分析建议:",
-  "- 对于界面截图: 识别布局结构、UI组件、交互元素、视觉层次",
-  "- 对于代码截图: 完整识别代码内容、语法高亮、注释、行号",
-  "- 对于日志/报错: 提取错误信息、堆栈跟踪、关键状态",
-  "- 对于图表/数据: 理解数据关系、趋势、关键指标",
+  "### Visual Cognitive Protocol (Must Follow)",
+  "1. **Scene Classification**: Identify the image type (UI Screenshot, Real-world Photo, Diagram, Code Snippet) and main subject immediately.",
+  "2. **Layout & Spatial Reasoning**: ",
+  "   - Scan the image structure (Header, Body, Footer, Sidebar).",
+  "   - Define spatial relationships using RELATIVE terms (e.g., 'A is above B', 'C is inside D', 'stacked vertically').",
+  "   - WARNING: Distinguish clearly between 'Vertical Stack' (Column) and 'Horizontal Row' (Row). Check alignment carefully.",
+  "3. **Element Inspection**: content, text, status, color.",
+  "4. **Anomaly Detection**: ",
+  "   - Check for *Truncation*: Is the object cut off by the image edge? (Indicates UI/cropping issue)",
+  "   - Check for *Incompleteness*: Is the object displayed partially but surrounded by background? (Indicates asset/model issue)",
   "",
-  "请基于你看到的内容,用清晰、结构化的方式回答用户的问题。",
-  "如果需要推断或建议,请基于可见证据并说明你的推理过程。",
+  "### Response Rules",
+  "- Be Objective: Report visible facts only.",
+  "- Be Structured: Use logical hierarchy/markdown.",
+  "- No Hallucination: If unsure, say 'ambiguous'. Do not invent coordinates.",
 ].join("\n");
 
 /**
@@ -137,8 +143,8 @@ async function createServer() {
 
   // 注册工具 - 使用 McpServer.tool() API
   server.tool(
-    "analyze_image",
-    `图像分析工具：
+    "image_understand",
+    `图像理解工具：
 - 何时调用：当用户提到“看图、看截图、看看这张图片/界面/页面/报错/架构/布局/组件结构/页面结构”等需求，或者在对话中出现图片附件并询问与图片内容相关的问题（包括 UI/前端界面结构、代码截图、日志/报错截图、文档截图、表单、表格等），都应优先调用本工具，而不是只用文本推理。
 - 图片来源：1) 用户粘贴图片时直接调用，无需手动指定路径 2) 指定本地图片路径，如 ./screenshot.png 3) 指定图片 URL，如 https://example.com/image.png。
 - 提示词（prompt）约定：
