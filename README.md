@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/jochenyang-luma-mcp-badge.png)](https://mseep.ai/app/jochenyang-luma-mcp)
+
 # Luma MCP
 
 多模型视觉理解 MCP 服务器，为不支持原生视觉能力的 AI 助手提供统一的图片分析能力。
