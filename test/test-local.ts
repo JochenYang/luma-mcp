@@ -15,9 +15,7 @@ import { SiliconFlowClient } from "../src/siliconflow-client.js";
 import type { VisionClient } from "../src/vision-client.js";
 import { VolcengineClient } from "../src/volcengine-client.js";
 import { ZhipuClient } from "../src/zhipu-client.js";
-
-const TEXT_HEAVY_PROMPT_PATTERN =
-  /ocr|extract|text|code|error|ui|layout|form|table|document|screenshot|screen|文字|文本|代码|报错|界面|布局|表格|文档|长图|表单|截图/i;
+import { TEXT_HEAVY_PROMPT_PATTERN } from "../src/constants.js";
 
 // 根据 provider 创建客户端
 function createClient(config: LumaConfig): VisionClient {

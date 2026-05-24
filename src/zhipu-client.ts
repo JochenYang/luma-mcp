@@ -2,7 +2,7 @@
  * 智谱 GLM-4.6V API 客户端
  */
 
-import axios from "axios";
+import axios, { type AxiosInstance } from "axios";
 import type { LumaConfig } from "./config.js";
 import { buildImageContent, type VisionClient } from "./vision-client.js";
 import { logger } from "./utils/logger.js";
@@ -49,6 +49,7 @@ interface ZhipuResponse {
 }
 
 export class ZhipuClient implements VisionClient {
+  private client: AxiosInstance;
   private apiKey: string;
   private model: string;
   private maxTokens: number;
@@ -62,6 +63,15 @@ export class ZhipuClient implements VisionClient {
     this.maxTokens = config.maxTokens;
     this.temperature = config.temperature;
     this.topP = config.topP;
+
+    this.client = axios.create({
+      baseURL: this.apiEndpoint,
+      timeout: 60000,
+      headers: {
+        Authorization: `Bearer ${this.apiKey}`,
+        "Content-Type": "application/json",
+      },
+    });
   }
 
   /**
@@ -102,16 +112,9 @@ export class ZhipuClient implements VisionClient {
     });
 
     try {
-      const response = await axios.post<ZhipuResponse>(
-        this.apiEndpoint,
-        requestBody,
-        {
-          headers: {
-            Authorization: `Bearer ${this.apiKey}`,
-            "Content-Type": "application/json",
-          },
-          timeout: 60000,
-        }
+      const response = await this.client.post<ZhipuResponse>(
+        "",
+        requestBody
       );
 
       if (!response.data.choices || response.data.choices.length === 0) {

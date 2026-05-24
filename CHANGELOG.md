@@ -2,6 +2,56 @@
 
 本项目的所有重大变更都将记录在此文件中。
 
+## [1.4.0] - 2026-05-24
+
+### Added
+
+- 🛡️ **SSRF 防护**: 远程图片下载增加 DNS 解析 + 私有 IP 检查 + `maxRedirects: 0`，防止内网地址攻击
+- 🛡️ **路径遍历防护**: 本地图片路径增加 `path.resolve()` + 白名单目录校验，防止任意文件读取
+- 🛡️ **像素尺寸限制**: 新增 `checkImageResolution` 限制最大 1600 万像素，防止 sharp OOM
+- 🆕 **公共常量模块**: 新增 `src/constants.ts`，集中管理视觉提示词和正则常量
+
+### Fixed
+
+- 🐛 **混元 thinking 修复**: `enableThinking` 参数现在正确传递给混元 API 请求体（`enable_thinking` 字段）
+- 🐛 **withRetry 4xx 优化**: 4xx 客户端错误（429 除外）不再重试，避免无效配额消耗
+- 🐛 **`TEXT_HEAVY_PROMPT_PATTERN` 去重**: 消除三处重复定义，统一从 `constants.ts` 导入
+
+### Changed
+
+- 🚀 **多 tile 裁剪并行化**: `for...of` 串行改为 `Promise.all` 并行，多图场景延迟降低约 65%
+- ⚡ **LRU 缓存**: 新增 `LRUCache`，同一图片二次分析时跳过处理直达结果
+- ⚡ **axios 实例复用**: SiliconFlow、智谱、火山引擎 3 个客户端统一使用 `axios.create()` 连接池
+- ⚡ **日志异步化**: `appendFileSync` → `appendFile`，不再阻塞事件循环
+- ⚡ **退避算法加 jitter**: 随机抖动（1x ~ 1.5x），防止并发重试惊群效应
+- 🔧 **魔法数字提取**: 压缩/裁剪参数（3072/2048/85/90/3/6）提取为命名常量
+- 🔧 **prompt 空值校验**: Zod schema 增加 `.min(1)` 防止空 prompt 调用
+- 🔧 **常量统一管理**: `DEFAULT_BASE_VISION_PROMPT` 和 `TEXT_HEAVY_PROMPT_PATTERN` 移入 `constants.ts`
+- 🔒 **DNS rebinding 防护**: axios 请求使用已解析 IP 替换 URL hostname，消除二次 DNS 解析窗口
+- 🔒 **IPv6 SSRF 覆盖**: `isPrivateIP` 增加 `fc00::/7`（ULA）和 `fe80::/10`（链路本地）检查
+
+### Security
+
+- 🔑 **依赖漏洞修复**: axios `^1.7.9` → `^1.15.1`，MCP SDK `^1.0.4` → `^1.25.4`，消除 12+ 个已知 CVE（含 6 个 HIGH），`npm audit` 现报 **0 vulnerabilities**
+
+### Technical Details
+
+- `src/image-processor.ts`:
+  - 新增 `isPrivateIP()` 覆盖全部私有 IP 段（IPv4/IPv6）
+  - 新增 `fetchRemoteImage` DNS 预解析 + IP 校验 + `Host` 头保留
+  - 新增 `loadImageBuffer` 路径遍历防护（`allowedDirs` 白名单）
+  - 新增 `checkImageResolution` 像素尺寸限制（16M pixels）
+  - `for...of` 裁剪串行 → `Promise.all` 并行
+  - 新增模块级 `LRUCache` 实例，缓存 `prepareVisionImageInput` 结果
+  - 所有魔法数字（压缩阈值/质量/尺寸）提取为命名常量
+- `src/hunyuan-client.ts`: `HunyuanRequest` 接口 + request body 增加 `enable_thinking`
+- `src/utils/helpers.ts`: `withRetry` 4xx（除 429）跳过重试，退避加随机 jitter
+- `src/utils/logger.ts`: 所有 `write`/`info`/`error`/`warn`/`debug` 方法改为 async
+- `src/siliconflow-client.ts`, `src/zhipu-client.ts`, `src/volcengine-client.ts`: 构造函数创建 `axios.create()` 实例，`analyzeImage` 使用 `this.client.post()`
+- `src/constants.ts`: 新文件，导出 `DEFAULT_BASE_VISION_PROMPT` 和 `TEXT_HEAVY_PROMPT_PATTERN`
+- `src/index.ts`: 常量导入改为 `constants.ts`，prompt Zod schema 加 `.min(1)`
+- `package.json`: axios `^1.7.9` → `^1.15.1`，MCP SDK `^1.0.4` → `^1.25.4`
+
 ## [1.3.8] - 2026-05-02
 
 ### Fixed

@@ -3,7 +3,7 @@
  * 支持 Doubao-Seed-1.6 系列
  */
 
-import axios from "axios";
+import axios, { type AxiosInstance } from "axios";
 import type { LumaConfig } from "./config.js";
 import { buildImageContent, type VisionClient } from "./vision-client.js";
 import { logger } from "./utils/logger.js";
@@ -52,6 +52,7 @@ interface VolcengineResponse {
 }
 
 export class VolcengineClient implements VisionClient {
+  private client: AxiosInstance;
   private apiKey: string;
   private model: string;
   private maxTokens: number;
@@ -64,6 +65,15 @@ export class VolcengineClient implements VisionClient {
     this.model = config.model;
     this.maxTokens = config.maxTokens;
     this.temperature = config.temperature;
+
+    this.client = axios.create({
+      baseURL: this.apiEndpoint,
+      timeout: 120000,
+      headers: {
+        Authorization: `Bearer ${this.apiKey}`,
+        "Content-Type": "application/json",
+      },
+    });
   }
 
   /**
@@ -104,16 +114,9 @@ export class VolcengineClient implements VisionClient {
     });
 
     try {
-      const response = await axios.post<VolcengineResponse>(
-        this.apiEndpoint,
-        requestBody,
-        {
-          headers: {
-            Authorization: `Bearer ${this.apiKey}`,
-            "Content-Type": "application/json",
-          },
-          timeout: 120000,
-        }
+      const response = await this.client.post<VolcengineResponse>(
+        "",
+        requestBody
       );
 
       if (!response.data.choices || response.data.choices.length === 0) {

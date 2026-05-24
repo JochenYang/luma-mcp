@@ -9,9 +9,7 @@ import {
   imageToBase64WithOptions,
 } from "../src/image-processor.js";
 import { QwenClient } from "../src/qwen-client.js";
-
-const TEXT_HEAVY_PROMPT_PATTERN =
-  /ocr|extract|text|code|error|ui|layout|form|table|document|screenshot|screen|文字|文本|代码|报错|界面|布局|表格|文档|长图|表单|截图/i;
+import { TEXT_HEAVY_PROMPT_PATTERN } from "../src/constants.js";
 
 // 根据 prompt 选择单图或多裁剪输入
 async function prepareImageInput(imagePath: string, prompt: string) {

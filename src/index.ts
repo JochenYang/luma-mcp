@@ -30,38 +30,10 @@ import {
   createSuccessResponse,
   createErrorResponse,
 } from "./utils/helpers.js";
-
-/**
- * Default base vision prompt used when BASE_VISION_PROMPT is not set.
- * This acts like a lightweight system prompt for image understanding.
- *
- * 设计目标：
- * - 激发原生多模态模型的视觉理解能力
- * - 针对开发者场景优化输出质量
- * - 不限制模型的自然推理和判断
- */
-const DEFAULT_BASE_VISION_PROMPT = [
-  "Role: You are an advanced Visual Analysis Engine. Your goal is to provide a rigorous, objective, and structured analysis of visual content.",
-  "",
-  "### Visual Cognitive Protocol (Must Follow)",
-  "1. **Scene Classification**: Identify the image type (UI Screenshot, Real-world Photo, Diagram, Code Snippet) and main subject immediately.",
-  "2. **Layout & Spatial Reasoning**: ",
-  "   - Scan the image structure (Header, Body, Footer, Sidebar).",
-  "   - Define spatial relationships using RELATIVE terms (e.g., 'A is above B', 'C is inside D', 'stacked vertically').",
-  "   - WARNING: Distinguish clearly between 'Vertical Stack' (Column) and 'Horizontal Row' (Row). Check alignment carefully.",
-  "3. **Element Inspection**: content, text, status, color.",
-  "4. **Anomaly Detection**: ",
-  "   - Check for *Truncation*: Is the object cut off by the image edge? (Indicates UI/cropping issue)",
-  "   - Check for *Incompleteness*: Is the object displayed partially but surrounded by background? (Indicates asset/model issue)",
-  "",
-  "### Response Rules",
-  "- Be Objective: Report visible facts only.",
-  "- Be Structured: Use logical hierarchy/markdown.",
-  "- No Hallucination: If unsure, say 'ambiguous'. Do not invent coordinates.",
-].join("\n");
-
-const TEXT_HEAVY_PROMPT_PATTERN =
-  /ocr|extract|text|code|error|stack trace|ui|layout|form|table|document|screenshot|screen|文字|文本|代码|报错|界面|布局|表格|文档|长图|表单|截图/i;
+import {
+  DEFAULT_BASE_VISION_PROMPT,
+  TEXT_HEAVY_PROMPT_PATTERN,
+} from "./constants.js";
 
 /**
  * Build full prompt by combining base vision prompt and user prompt.
@@ -191,6 +163,7 @@ async function createServer() {
         ),
       prompt: z
         .string()
+        .min(1, "Prompt cannot be empty")
         .describe(
           "用户关于图片的原始问题或简短指令，例如“这张图是什么界面？”、“帮我分析这个页面的结构和布局”。服务器会在内部补充系统级视觉提示词并构造完整分析指令。"
         ),

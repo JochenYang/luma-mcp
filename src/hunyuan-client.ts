@@ -26,6 +26,7 @@ interface HunyuanRequest {
   temperature: number;
   max_tokens: number;
   top_p: number;
+  enable_thinking?: boolean;
 }
 
 interface HunyuanResponse {
@@ -100,6 +101,10 @@ export class HunyuanClient implements VisionClient {
         max_tokens: this.maxTokens,
         top_p: this.topP,
       };
+
+      if (enableThinking !== undefined) {
+        requestBody.enable_thinking = enableThinking;
+      }
 
       logger.info("Calling Hunyuan Vision API", {
         model: this.model,

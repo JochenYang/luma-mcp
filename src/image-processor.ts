@@ -5,6 +5,10 @@
 
 import axios from "axios";
 import { readFile, stat } from "fs/promises";
+import { lookup } from "dns/promises";
+import { isIPv6 } from "net";
+import os from "os";
+import path from "path";
 import sharp from "sharp";
 import { isUrl } from "./utils/helpers.js";
 import { logger } from "./utils/logger.js";
@@ -18,6 +22,22 @@ const SUPPORTED_MIME_TYPES = [
 
 const SUPPORTED_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif"];
 const DEFAULT_REMOTE_TIMEOUT_MS = 30000;
+const MAX_PIXEL_COUNT = 16_000_000;
+
+// 图片压缩参数常量
+const COMPRESS_MAX_DIMENSION_TEXT = 3072;
+const COMPRESS_MAX_DIMENSION_GENERAL = 2048;
+const COMPRESS_QUALITY_TEXT = 90;
+const COMPRESS_QUALITY_GENERAL = 85;
+const COMPRESS_PNG_LEVEL_TEXT = 3;
+const COMPRESS_PNG_LEVEL_GENERAL = 6;
+
+// 图片裁剪阈值常量
+const CROP_MIN_DIMENSION = 1800;
+const CROP_MIN_PIXEL_COUNT = 3_500_000;
+
+// 压缩触发阈值
+const COMPRESS_THRESHOLD_BYTES = 2 * 1024 * 1024;
 
 // 判断输入是否为 Data URI（data:image/png;base64,...）
 function isDataUri(input: string): boolean {
@@ -120,6 +140,54 @@ function ensureSupportedMimeType(mimeType: string | null): string {
 }
 
 /**
+ * 检查 IP 地址是否为私有/内网地址（SSRF 防护用）
+ */
+function isPrivateIP(ip: string): boolean {
+  // IPv6 回环地址
+  if (ip === "::1") {
+    return true;
+  }
+
+  // IPv4-mapped IPv6 地址（如 ::ffff:127.0.0.1）
+  if (isIPv6(ip)) {
+    const v4Match = ip.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
+    if (v4Match) {
+      return isPrivateIP(v4Match[1]);
+    }
+    // fc00::/7 — 唯一本地地址（IPv6 私有地址）
+    // fe80::/10 — 链路本地地址
+    const lowerIp = ip.toLowerCase();
+    if (lowerIp.startsWith("fc") || lowerIp.startsWith("fd")) return true;
+    if (/^fe[89ab]/.test(lowerIp)) return true;
+    return false;
+  }
+
+  // IPv4 地址检查
+  const parts = ip.split(".");
+  if (parts.length !== 4) {
+    return false;
+  }
+
+  const first = parseInt(parts[0], 10);
+  const second = parseInt(parts[1], 10);
+
+  // 0.0.0.0/8（源地址，可能绑定到所有接口）
+  if (first === 0) return true;
+  // 127.0.0.0/8（回环地址）
+  if (first === 127) return true;
+  // 10.0.0.0/8（私有 A 类）
+  if (first === 10) return true;
+  // 172.16.0.0/12（私有 B 类）
+  if (first === 172 && second >= 16 && second <= 31) return true;
+  // 192.168.0.0/16（私有 C 类）
+  if (first === 192 && second === 168) return true;
+  // 169.254.0.0/16（链路本地）
+  if (first === 169 && second === 254) return true;
+
+  return false;
+}
+
+/**
  * 拉取远程图片并纳入统一预处理流程
  */
 async function fetchRemoteImage(
@@ -130,19 +198,62 @@ async function fetchRemoteImage(
 
   logger.info("Fetching remote image for preprocessing", { url: imageUrl });
 
+  // SSRF 防护：解析 URL 的 hostname 并检查是否为私有/内网地址
+  let parsedUrl: URL;
   try {
-    const response = await axios.get<ArrayBuffer>(imageUrl, {
+    parsedUrl = new URL(imageUrl);
+  } catch {
+    throw new Error(`Invalid URL: ${imageUrl}`);
+  }
+
+  const hostname = parsedUrl.hostname;
+
+  // 判断 hostname 是否为 IP 地址格式
+  const isHostnameIp = /^[\d.]+$/.test(hostname) || isIPv6(hostname);
+
+  let resolvedIp: string;
+  if (isHostnameIp) {
+    resolvedIp = hostname;
+  } else {
+    // DNS 解析域名到 IP
+    try {
+      const dnsResult = await lookup(hostname);
+      resolvedIp = dnsResult.address;
+    } catch (dnsError) {
+      throw new Error(
+        `Failed to resolve remote image host: ${(dnsError as Error).message}`
+      );
+    }
+  }
+
+  if (isPrivateIP(resolvedIp)) {
+    throw new Error(
+      "Remote image URL points to an internal/private address. This is not allowed for security reasons."
+    );
+  }
+
+  try {
+    // 使用已验证的 IP 直接替换 URL 中的 hostname，防止 DNS rebinding 攻击
+    // 同时保留原始 Host 头部，确保虚拟主机路由正确
+    const safeUrl = new URL(imageUrl);
+    safeUrl.hostname = resolvedIp;
+
+    const response = await axios.get<ArrayBuffer>(safeUrl.toString(), {
       responseType: "arraybuffer",
       timeout: DEFAULT_REMOTE_TIMEOUT_MS,
       maxContentLength: maxBytes,
       maxBodyLength: maxBytes,
+      maxRedirects: 0, // 禁用重定向防 SSRF 绕过
+      headers: {
+        Host: parsedUrl.hostname, // 保持原始 Host 头供服务端虚拟主机路由
+      },
     });
 
     const mimeType = ensureSupportedMimeType(
       normalizeMimeType(response.headers["content-type"] as string | undefined) ||
         normalizeMimeType(getMimeType(imageUrl))
     );
-    const buffer = Buffer.from(response.data);
+    const buffer = Buffer.from(response.data as ArrayBuffer);
 
     if (buffer.length > maxBytes) {
       throw new Error(
@@ -179,7 +290,25 @@ async function loadImageBuffer(
     return fetchRemoteImage(imageSource);
   }
 
-  const buffer = await readFile(imageSource);
+  // 路径遍历防护：将用户路径解析为绝对路径并校验是否在允许的范围内
+  const resolvedPath = path.resolve(imageSource);
+  const normalizedPath = path.normalize(resolvedPath);
+
+  const allowedDirs = [process.cwd(), os.homedir()].map((dir) =>
+    path.normalize(dir).toLowerCase()
+  );
+
+  const isAllowed = allowedDirs.some((dir) =>
+    normalizedPath.toLowerCase().startsWith(dir)
+  );
+
+  if (!isAllowed) {
+    throw new Error(
+      "Access denied: image path is outside the allowed directory"
+    );
+  }
+
+  const buffer = await readFile(resolvedPath);
   const mimeType = ensureSupportedMimeType(getMimeType(imageSource));
   return { buffer, mimeType };
 }
@@ -259,6 +388,49 @@ export interface PreparedImageInput {
 }
 
 /**
+ * 简单 LRU 缓存，避免同一图片重复处理
+ */
+class LRUCache<K, V> {
+  private cache: Map<K, V>;
+  private maxSize: number;
+
+  constructor(maxSize: number = 100) {
+    this.cache = new Map();
+    this.maxSize = maxSize;
+  }
+
+  get(key: K): V | undefined {
+    const value = this.cache.get(key);
+    if (value !== undefined) {
+      // 移动到末尾（最新的位置）
+      this.cache.delete(key);
+      this.cache.set(key, value);
+    }
+    return value;
+  }
+
+  set(key: K, value: V): void {
+    if (this.cache.has(key)) {
+      this.cache.delete(key);
+    } else if (this.cache.size >= this.maxSize) {
+      // 删除最旧的（Map 的第一个 entry）
+      const firstKey = this.cache.keys().next().value;
+      if (firstKey !== undefined) {
+        this.cache.delete(firstKey);
+      }
+    }
+    this.cache.set(key, value);
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+}
+
+// 模块级 LRU 缓存实例，避免同一图片重复处理
+const imageCache = new LRUCache<string, PreparedImageInput>(100);
+
+/**
  * 将图片转为单张 base64 Data URL
  * 对文本密集场景保留更多细节
  */
@@ -291,6 +463,8 @@ export async function imageToBase64Variants(
     const normalizedPath = normalizeImageSourcePath(imagePath);
     const { buffer: imageBuffer, mimeType } = await loadImageBuffer(normalizedPath);
 
+    await checkImageResolution(imageBuffer);
+
     if (mimeType === "image/gif") {
       const full = await encodeBufferToDataUrl(
         imageBuffer,
@@ -315,7 +489,7 @@ export async function imageToBase64Variants(
     }
 
     const shouldSplit =
-      Math.max(width, height) >= 1800 || width * height >= 3500000;
+      Math.max(width, height) >= CROP_MIN_DIMENSION || width * height >= CROP_MIN_PIXEL_COUNT;
 
     const full = await encodeBufferToDataUrl(imageBuffer, mimeType, preferText);
 
@@ -333,17 +507,12 @@ export async function imageToBase64Variants(
       return [full];
     }
 
-    const tiles: string[] = [];
-
-    for (const region of cropRegions) {
-      const tileBuffer = await sharp(imageBuffer).extract(region).toBuffer();
-      const tileDataUrl = await encodeBufferToDataUrl(
-        tileBuffer,
-        mimeType,
-        preferText
-      );
-      tiles.push(tileDataUrl);
-    }
+    const tiles = await Promise.all(
+      cropRegions.map(async (region) => {
+        const tileBuffer = await sharp(imageBuffer).extract(region).toBuffer();
+        return encodeBufferToDataUrl(tileBuffer, mimeType, preferText);
+      })
+    );
 
     return [full, ...tiles];
   } catch (error) {
@@ -363,17 +532,48 @@ export async function prepareVisionImageInput(
   imagePath: string,
   options?: { preferText?: boolean; maxTiles?: number }
 ): Promise<PreparedImageInput> {
-  const variants = await imageToBase64Variants(imagePath, options);
+  const normalizedPath = normalizeImageSourcePath(imagePath);
+  const cacheKey = `${normalizedPath}::${JSON.stringify(options ?? {})}`;
 
-  if (variants.length <= 1) {
-    return { imageData: variants[0] };
+  const cached = imageCache.get(cacheKey);
+  if (cached !== undefined) {
+    return cached;
   }
 
-  const metadataHint = buildImageSetHint(variants.length - 1, imagePath, options);
-  return {
-    imageData: variants,
-    imageHint: metadataHint,
-  };
+  const variants = await imageToBase64Variants(imagePath, options);
+
+  let result: PreparedImageInput;
+  if (variants.length <= 1) {
+    result = { imageData: variants[0] };
+  } else {
+    const metadataHint = buildImageSetHint(variants.length - 1, imagePath, options);
+    result = {
+      imageData: variants,
+      imageHint: metadataHint,
+    };
+  }
+
+  // 只在成功时缓存
+  imageCache.set(cacheKey, result);
+  return result;
+}
+
+/**
+ * 检查图片像素尺寸是否超过限制
+ * 防止超大图片导致 sharp OOM
+ */
+async function checkImageResolution(buffer: Buffer): Promise<void> {
+  const metadata = await sharp(buffer).metadata();
+  const width = metadata.width ?? 0;
+  const height = metadata.height ?? 0;
+
+  if (width * height > MAX_PIXEL_COUNT) {
+    const maxWidth = Math.round(Math.sqrt(MAX_PIXEL_COUNT));
+    const maxHeight = maxWidth;
+    throw new Error(
+      `Image dimensions exceed the maximum allowed resolution of ${maxWidth}x${maxHeight} (or ${MAX_PIXEL_COUNT} total pixels)`
+    );
+  }
 }
 
 /**
@@ -384,6 +584,7 @@ async function encodeImageSource(
   options?: { preferText?: boolean }
 ): Promise<{ base64: string; mimeType: string }> {
   const { buffer, mimeType } = await loadImageBuffer(normalizedPath);
+  await checkImageResolution(buffer);
   return encodeLocalImage(buffer, mimeType, options);
 }
 
@@ -403,7 +604,7 @@ async function encodeLocalImage(
     options?.preferText
   );
 
-  if (buffer.length > 2 * 1024 * 1024) {
+  if (buffer.length > COMPRESS_THRESHOLD_BYTES) {
     logger.info("Compressing large image", {
       originalSize: `${(buffer.length / (1024 * 1024)).toFixed(2)}MB`,
       preferText,
@@ -430,7 +631,7 @@ async function encodeBufferToDataUrl(
   let buffer = imageBuffer;
   let mimeType = inputMimeType;
 
-  if (buffer.length > 2 * 1024 * 1024) {
+  if (buffer.length > COMPRESS_THRESHOLD_BYTES) {
     const compressed = await compressImage(buffer, mimeType, preferText);
     buffer = compressed.buffer;
     mimeType = compressed.mimeType;
@@ -451,7 +652,7 @@ async function compressImage(
     return { buffer: imageBuffer, mimeType: inputMimeType };
   }
 
-  const maxSize = preferText ? 3072 : 2048;
+  const maxSize = preferText ? COMPRESS_MAX_DIMENSION_TEXT : COMPRESS_MAX_DIMENSION_GENERAL;
   const pipeline = sharp(imageBuffer).resize(maxSize, maxSize, {
     fit: "inside",
     withoutEnlargement: true,
@@ -459,20 +660,20 @@ async function compressImage(
 
   if (inputMimeType === "image/png") {
     const buffer = await pipeline
-      .png({ compressionLevel: preferText ? 3 : 6 })
+      .png({ compressionLevel: preferText ? COMPRESS_PNG_LEVEL_TEXT : COMPRESS_PNG_LEVEL_GENERAL })
       .toBuffer();
     return { buffer, mimeType: "image/png" };
   }
 
   if (inputMimeType === "image/webp") {
     const buffer = await pipeline
-      .webp({ quality: preferText ? 90 : 85 })
+      .webp({ quality: preferText ? COMPRESS_QUALITY_TEXT : COMPRESS_QUALITY_GENERAL })
       .toBuffer();
     return { buffer, mimeType: "image/webp" };
   }
 
   const buffer = await pipeline
-    .jpeg({ quality: preferText ? 90 : 85 })
+    .jpeg({ quality: preferText ? COMPRESS_QUALITY_TEXT : COMPRESS_QUALITY_GENERAL })
     .toBuffer();
   return { buffer, mimeType: "image/jpeg" };
 }

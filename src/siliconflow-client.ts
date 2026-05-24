@@ -3,7 +3,7 @@
  * OpenAI 兼容接口
  */
 
-import axios from "axios";
+import axios, { type AxiosInstance } from "axios";
 import type { LumaConfig } from "./config.js";
 import { buildImageContent, type VisionClient } from "./vision-client.js";
 import { logger } from "./utils/logger.js";
@@ -49,6 +49,7 @@ interface SiliconFlowResponse {
 }
 
 export class SiliconFlowClient implements VisionClient {
+  private client: AxiosInstance;
   private apiKey: string;
   private model: string;
   private maxTokens: number;
@@ -60,6 +61,15 @@ export class SiliconFlowClient implements VisionClient {
     this.model = config.model;
     this.maxTokens = config.maxTokens;
     this.temperature = config.temperature;
+
+    this.client = axios.create({
+      baseURL: this.apiEndpoint,
+      timeout: 60000,
+      headers: {
+        Authorization: `Bearer ${this.apiKey}`,
+        "Content-Type": "application/json",
+      },
+    });
   }
 
   /**
@@ -95,16 +105,9 @@ export class SiliconFlowClient implements VisionClient {
     });
 
     try {
-      const response = await axios.post<SiliconFlowResponse>(
-        this.apiEndpoint,
-        requestBody,
-        {
-          headers: {
-            Authorization: `Bearer ${this.apiKey}`,
-            "Content-Type": "application/json",
-          },
-          timeout: 60000,
-        }
+      const response = await this.client.post<SiliconFlowResponse>(
+        "",
+        requestBody
       );
 
       if (!response.data.choices || response.data.choices.length === 0) {
