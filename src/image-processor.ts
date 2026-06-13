@@ -4,9 +4,11 @@
  */
 
 import axios from "axios";
-import { readFile, stat } from "fs/promises";
+import { readFile, stat, realpath } from "fs/promises";
 import { lookup } from "dns/promises";
 import { isIPv6 } from "net";
+import { createHash } from "crypto";
+import https from "https";
 import os from "os";
 import path from "path";
 import sharp from "sharp";
@@ -156,9 +158,11 @@ function isPrivateIP(ip: string): boolean {
     }
     // fc00::/7 — 唯一本地地址（IPv6 私有地址）
     // fe80::/10 — 链路本地地址
+    // ff00::/8 — 多播地址
     const lowerIp = ip.toLowerCase();
     if (lowerIp.startsWith("fc") || lowerIp.startsWith("fd")) return true;
     if (/^fe[89ab]/.test(lowerIp)) return true;
+    if (lowerIp.startsWith("ff")) return true;
     return false;
   }
 
@@ -183,6 +187,16 @@ function isPrivateIP(ip: string): boolean {
   if (first === 192 && second === 168) return true;
   // 169.254.0.0/16（链路本地）
   if (first === 169 && second === 254) return true;
+  // 100.64.0.0/10（CGNAT — 运营商级 NAT）
+  if (first === 100 && second >= 64 && second <= 127) return true;
+  // 224.0.0.0/4（多播）
+  if (first >= 224 && first <= 239) return true;
+  // 255.255.255.255（有限广播）
+  if (first === 255 && second === 255) {
+    const third = parseInt(parts[2], 10);
+    const fourth = parseInt(parts[3], 10);
+    if (third === 255 && fourth === 255) return true;
+  }
 
   return false;
 }
@@ -232,28 +246,38 @@ async function fetchRemoteImage(
     );
   }
 
-  try {
-    // 使用已验证的 IP 直接替换 URL 中的 hostname，防止 DNS rebinding 攻击
-    // 同时保留原始 Host 头部，确保虚拟主机路由正确
-    const safeUrl = new URL(imageUrl);
-    safeUrl.hostname = resolvedIp;
+  // 用 lookup 函数返回预验证 IP + HTTPS 时设 servername，确保 SNI 走原域名
+  const isHttps = parsedUrl.protocol === "https:";
+  const lookupFn: NonNullable<
+    import("axios").AxiosRequestConfig["lookup"]
+  > = (_hostname, _options, callback) => {
+    callback(null, {
+      address: resolvedIp,
+      family: isIPv6(resolvedIp) ? 6 : 4,
+    });
+  };
 
-    const response = await axios.get<ArrayBuffer>(safeUrl.toString(), {
+  try {
+    const response = await axios.get<ArrayBuffer>(imageUrl, {
       responseType: "arraybuffer",
       timeout: DEFAULT_REMOTE_TIMEOUT_MS,
       maxContentLength: maxBytes,
       maxBodyLength: maxBytes,
       maxRedirects: 0, // 禁用重定向防 SSRF 绕过
-      headers: {
-        Host: parsedUrl.hostname, // 保持原始 Host 头供服务端虚拟主机路由
-      },
+      lookup: lookupFn,
+      httpsAgent: isHttps
+        ? new https.Agent({ servername: parsedUrl.hostname })
+        : undefined,
     });
 
     const mimeType = ensureSupportedMimeType(
       normalizeMimeType(response.headers["content-type"] as string | undefined) ||
         normalizeMimeType(getMimeType(imageUrl))
     );
-    const buffer = Buffer.from(response.data as ArrayBuffer);
+    const data = response.data;
+    const buffer = Buffer.isBuffer(data)
+      ? data
+      : Buffer.from(data as ArrayBuffer);
 
     if (buffer.length > maxBytes) {
       throw new Error(
@@ -292,14 +316,24 @@ async function loadImageBuffer(
 
   // 路径遍历防护：将用户路径解析为绝对路径并校验是否在允许的范围内
   const resolvedPath = path.resolve(imageSource);
-  const normalizedPath = path.normalize(resolvedPath);
+
+  // 解析符号链接，得到真实物理路径（防止 symlink 越界）
+  let realPath: string;
+  try {
+    realPath = await realpath(resolvedPath);
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") {
+      throw new Error(`Image file not found: ${resolvedPath}`);
+    }
+    throw err;
+  }
 
   const allowedDirs = [process.cwd(), os.homedir()].map((dir) =>
     path.normalize(dir).toLowerCase()
   );
 
   const isAllowed = allowedDirs.some((dir) =>
-    normalizedPath.toLowerCase().startsWith(dir)
+    realPath.toLowerCase().startsWith(dir)
   );
 
   if (!isAllowed) {
@@ -308,7 +342,7 @@ async function loadImageBuffer(
     );
   }
 
-  const buffer = await readFile(resolvedPath);
+  const buffer = await readFile(realPath);
   const mimeType = ensureSupportedMimeType(getMimeType(imageSource));
   return { buffer, mimeType };
 }
@@ -427,6 +461,22 @@ class LRUCache<K, V> {
   }
 }
 
+/**
+ * 生成缓存 key
+ * - 短路径保留可读性（调试友好）
+ * - 长输入（Data URI / 大 URL）走 SHA-256 摘要，避免内存膨胀
+ */
+function makeCacheKey(normalizedPath: string, options: unknown): string {
+  const optionsStr = JSON.stringify(options ?? {});
+  if (normalizedPath.length <= 256 && !isDataUri(normalizedPath)) {
+    return `${normalizedPath}::${optionsStr}`;
+  }
+  const hash = createHash("sha256");
+  hash.update(normalizedPath);
+  hash.update(optionsStr);
+  return `sha256:${hash.digest("hex")}`;
+}
+
 // 模块级 LRU 缓存实例，避免同一图片重复处理
 const imageCache = new LRUCache<string, PreparedImageInput>(100);
 
@@ -533,7 +583,7 @@ export async function prepareVisionImageInput(
   options?: { preferText?: boolean; maxTiles?: number }
 ): Promise<PreparedImageInput> {
   const normalizedPath = normalizeImageSourcePath(imagePath);
-  const cacheKey = `${normalizedPath}::${JSON.stringify(options ?? {})}`;
+  const cacheKey = makeCacheKey(normalizedPath, options);
 
   const cached = imageCache.get(cacheKey);
   if (cached !== undefined) {

@@ -31,14 +31,19 @@ async function testDataUri() {
     console.log(`✅ 通过：正确拒绝不支持的格式 - ${error instanceof Error ? error.message : String(error)}\n`);
   }
 
-  // 测试 3: Data URI 转换（应该直接返回）
+  // 测试 3: Data URI 转换（round-trip 语义等价）
   try {
     console.log('测试 3: Data URI 转换');
     const result = await imageToBase64(validDataUri);
-    if (result === validDataUri) {
-      console.log('✅ 通过：Data URI 正确传递（未修改）\n');
+    // v1.4.0 后 Data URI 走完整预处理链路（decode→encode），可能压缩后字节级不同
+    // 但解码后内容应语义等价
+    const resultDataUri = result.startsWith('data:') ? result : `data:image/png;base64,${result}`;
+    const originalBytes = Buffer.from(validDataUri.split(',')[1], 'base64');
+    const resultBytes = Buffer.from(resultDataUri.split(',')[1], 'base64');
+    if (Buffer.compare(originalBytes, resultBytes) === 0) {
+      console.log('✅ 通过：Data URI 解码后字节一致（round-trip 语义等价）\n');
     } else {
-      console.log('❌ 失败：Data URI 被修改了\n');
+      console.log('❌ 失败：Data URI 内容被破坏\n');
     }
   } catch (error) {
     console.log(`❌ 失败: ${error instanceof Error ? error.message : String(error)}\n`);

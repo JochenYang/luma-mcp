@@ -2,6 +2,37 @@
 
 本项目的所有重大变更都将记录在此文件中。
 
+## [1.4.1] - 2026-06-13
+
+### Fixed
+
+- 🐛 **HTTPS 远程图拉取修复**: `fetchRemoteImage` 改回 `lookup` 函数返回预验证 IP + `https.Agent({ servername })` 组合，避免 TLS 证书主机名校验失败（v1.4.0 引入的回归导致 HTTPS 远程图基本全挂）
+- 🐛 **LRU 缓存 key 内存膨胀**: 缓存 key 对长输入（Data URI / 大 URL）走 SHA-256 摘要，避免单条 key 几 MB 导致 100 条可达 500MB+ 内存
+- 🐛 **路径遍历 symlink 漏洞**: `loadImageBuffer` 增加 `fs.realpath` 解析真实物理路径，防止符号链接越界
+- 🐛 **`isPrivateIP` 覆盖增强**: 补充 `100.64.0.0/10`（CGNAT）、`224.0.0.0/4`（多播）、`255.255.255.255`（广播）、IPv6 `ff00::/8`（多播）检查
+- 🐛 **logger 浮动 Promise 崩溃**: `write` 方法最外层 try/catch 兜底，确保 36 个未 await 调用点永不引发 unhandledRejection
+- 🐛 **`Buffer.from` 隐式拷贝**: 远程图响应 `Buffer.isBuffer(data)` 判断避免不必要的 Buffer 拷贝
+- 🐛 **`withRetry` 跳过 408**: 408 Request Timeout 加入重试白名单（属临时性问题）
+- 🐛 **`.env.example` 补充 Hunyuan 区块**: 用户首次配置 `MODEL_PROVIDER=hunyuan` 可直接参考模板
+- 🐛 **`test-data-uri.ts` 过时断言**: 第 3 个断言改为 round-trip 字节级语义等价（v1.4.0 后 Data URI 走完整预处理，断言"未修改"已不成立）
+
+### Security
+
+- 🛡️ **HTTPS 兼容性回归修复**: v1.4.0 的 `URL.hostname = IP` 重写在 HTTPS 场景下因证书校验失败而无法拉取远程图，本版本彻底修复
+
+### Technical Details
+
+- `src/image-processor.ts`:
+  - `fetchRemoteImage` 改用 axios `lookup` 拦截 + `https.Agent.servername` 方案
+  - 新增 `makeCacheKey` 函数（短路径保留可读性，长输入走 SHA-256）
+  - `loadImageBuffer` 增加 `fs.realpath` 解析 symlink
+  - `isPrivateIP` 补充 CGNAT/multicast/broadcast 段
+  - `Buffer.from(response.data as ArrayBuffer)` 改为 `Buffer.isBuffer` 零拷贝
+- `src/utils/logger.ts`: `write` 方法最外层 try/catch 兜底
+- `src/utils/helpers.ts`: `withRetry` 4xx 跳过增加 408 例外
+- `.env.example`: 补充 Hunyuan provider 区块
+- `test/test-data-uri.ts`: 第 3 断言改为 round-trip 字节比对
+
 ## [1.4.0] - 2026-05-24
 
 ### Added

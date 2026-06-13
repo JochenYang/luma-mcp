@@ -18,10 +18,11 @@ export function withRetry<T>(
       try {
         return await fn(...args);
       } catch (error) {
-        // 4xx 客户端错误直接抛出，不重试（429 Too Many Requests 除外，应带退避重试）
+        // 4xx 客户端错误直接抛出，不重试
+        // 例外：429 Too Many Requests / 408 Request Timeout 应带退避重试
         if (axios.isAxiosError(error) && error.response?.status) {
           const status = error.response.status;
-          if (status >= 400 && status < 500 && status !== 429) {
+          if (status >= 400 && status < 500 && status !== 429 && status !== 408) {
             throw error;
           }
         }

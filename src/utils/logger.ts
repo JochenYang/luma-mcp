@@ -30,20 +30,31 @@ class Logger {
     }
   }
 
-  private async write(level: string, message: string, ...args: any[]) {
-    const timestamp = new Date().toISOString();
-    const argsStr = args.length > 0 ? ` ${JSON.stringify(args)}` : '';
-    const logMessage = `[${timestamp}] ${level.toUpperCase()}: ${message}${argsStr}`;
+  private async write(level: string, message: string, ...args: any[]): Promise<void> {
+    try {
+      const timestamp = new Date().toISOString();
+      const argsStr = args.length > 0 ? ` ${JSON.stringify(args)}` : '';
+      const logMessage = `[${timestamp}] ${level.toUpperCase()}: ${message}${argsStr}`;
 
-    // 输出到 stderr
-    process.stderr.write(logMessage + '\n');
+      // 输出到 stderr
+      process.stderr.write(logMessage + '\n');
 
-    // 异步写入日志文件（不阻塞事件循环）
-    if (this.logFilePath) {
+      // 异步写入日志文件（不阻塞事件循环）
+      if (this.logFilePath) {
+        try {
+          await appendFile(this.logFilePath, logMessage + '\n');
+        } catch {
+          // 文件写入失败，静默忽略
+        }
+      }
+    } catch (error) {
+      // 防御兜底：日志写不出绝不能让进程崩
       try {
-        await appendFile(this.logFilePath, logMessage + '\n');
+        process.stderr.write(
+          `[LOGGER-INTERNAL-ERROR] ${error instanceof Error ? error.message : String(error)}\n`
+        );
       } catch {
-        // 忽略文件写入错误
+        // 最后的最后，沉默
       }
     }
   }
