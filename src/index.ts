@@ -14,12 +14,14 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 
 import { loadConfig } from "./config.js";
+import type { LumaConfig } from "./config.js";
 import type { VisionClient } from "./vision-client.js";
 import { ZhipuClient } from "./zhipu-client.js";
 import { SiliconFlowClient } from "./siliconflow-client.js";
 import { QwenClient } from "./qwen-client.js";
 import { VolcengineClient } from "./volcengine-client.js";
 import { HunyuanClient } from "./hunyuan-client.js";
+import { CustomClient } from "./custom-client.js";
 import {
   imageToBase64WithOptions,
   prepareVisionImageInput,
@@ -97,17 +99,23 @@ async function createServer() {
   // 根据配置选择模型客户端
   let visionClient: VisionClient;
 
-  if (config.provider === "siliconflow") {
-    visionClient = new SiliconFlowClient(config);
-  } else if (config.provider === "qwen") {
-    visionClient = new QwenClient(config);
-  } else if (config.provider === "volcengine") {
-    visionClient = new VolcengineClient(config);
-  } else if (config.provider === "hunyuan") {
-    visionClient = new HunyuanClient(config);
-  } else {
-    visionClient = new ZhipuClient(config);
+  // Provider registry 模式：新增 provider 只需往 Map 加一行
+  const CLIENT_REGISTRY: Record<string, (config: LumaConfig) => VisionClient> = {
+    zhipu: (c) => new ZhipuClient(c),
+    siliconflow: (c) => new SiliconFlowClient(c),
+    qwen: (c) => new QwenClient(c),
+    volcengine: (c) => new VolcengineClient(c),
+    hunyuan: (c) => new HunyuanClient(c),
+    custom: (c) => new CustomClient(c),
+  };
+
+  const factory = CLIENT_REGISTRY[config.provider];
+  if (!factory) {
+    throw new Error(
+      `Unsupported MODEL_PROVIDER: ${config.provider}. Supported: ${Object.keys(CLIENT_REGISTRY).join(", ")}`
+    );
   }
+  visionClient = factory(config);
 
   logger.info("Vision client initialized", {
     provider: config.provider,

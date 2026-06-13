@@ -8,7 +8,19 @@ export type ModelProvider =
   | "siliconflow"
   | "qwen"
   | "volcengine"
-  | "hunyuan";
+  | "hunyuan"
+  | "custom";
+
+export interface CustomProviderConfig {
+  apiKey: string;
+  baseUrl: string;
+  model: string;
+  authHeader: "bearer" | "x-api-key" | "custom";
+  authHeaderValue?: string;
+  path: string;
+  timeoutMs: number;
+  thinkingMode: "disabled" | "openai" | "qwen_extra_body";
+}
 
 export interface LumaConfig {
   provider: ModelProvider;
@@ -21,6 +33,7 @@ export interface LumaConfig {
   multiCrop: boolean;
   multiCropMaxTiles: number;
   baseVisionPrompt?: string;
+  customProvider?: CustomProviderConfig;
 }
 
 /**
@@ -57,6 +70,41 @@ export function loadConfig(): LumaConfig {
     apiKey = ""; // Set empty string to allow server to start
   }
 
+  // 解析 custom provider 配置（仅在 provider === "custom" 时生效）
+  let customProvider: CustomProviderConfig | undefined;
+  if (provider === "custom") {
+    const apiKey = process.env.CUSTOM_API_KEY;
+    const baseUrl = process.env.CUSTOM_BASE_URL;
+    const model = process.env.CUSTOM_MODEL_NAME;
+
+    if (!apiKey) {
+      throw new Error("CUSTOM_API_KEY is required when MODEL_PROVIDER=custom");
+    }
+    if (!baseUrl) {
+      throw new Error("CUSTOM_BASE_URL is required when MODEL_PROVIDER=custom");
+    }
+    if (!model) {
+      throw new Error("CUSTOM_MODEL_NAME is required when MODEL_PROVIDER=custom");
+    }
+
+    customProvider = {
+      apiKey,
+      baseUrl,
+      model,
+      authHeader:
+        (process.env.CUSTOM_AUTH_HEADER as "bearer" | "x-api-key" | "custom") ||
+        "bearer",
+      authHeaderValue: process.env.CUSTOM_AUTH_HEADER_VALUE,
+      path: process.env.CUSTOM_PATH || "/chat/completions",
+      timeoutMs: parseInt(process.env.CUSTOM_TIMEOUT_MS || "60000", 10),
+      thinkingMode:
+        (process.env.CUSTOM_THINKING_MODE as
+          | "disabled"
+          | "openai"
+          | "qwen_extra_body") || "disabled",
+    };
+  }
+
   return {
     provider,
     apiKey,
@@ -68,5 +116,6 @@ export function loadConfig(): LumaConfig {
     multiCrop: process.env.MULTI_CROP !== "false",
     multiCropMaxTiles: parseInt(process.env.MULTI_CROP_MAX_TILES || "5", 10),
     baseVisionPrompt: process.env.BASE_VISION_PROMPT,
+    customProvider,
   };
 }

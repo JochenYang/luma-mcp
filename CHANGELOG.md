@@ -2,6 +2,50 @@
 
 本项目的所有重大变更都将记录在此文件中。
 
+## [1.5.0] - 2026-06-13
+
+### Added
+
+- 🆕 **Custom Provider 支持**: 新增通用 OpenAI 兼容客户端 `CustomClient`，支持任意 OpenAI 兼容端点（OpenAI、OpenRouter、Together AI、Anthropic 代理、本地 vLLM/Ollama 等）
+- 🆕 **Provider Registry 模式**: 用 Map 取代 if/else 链，新增 provider 只需添加一行工厂映射
+- 🆕 **灵活鉴权配置**: 支持 `bearer` / `x-api-key` / `custom` 三种鉴权方式，自定义模式支持 `{{key}}` 模板替换
+- 🆕 **Thinking 模式适配**: CustomClient 支持 `disabled` / `openai` / `qwen_extra_body` 三种 thinking 字段位置配置
+- 🆕 **CustomProviderConfig 类型**: `LumaConfig` 新增 `customProvider?` 字段，集中管理自定义 provider 配置
+- 🆕 **测试覆盖**: `test/test-custom.ts` 覆盖鉴权头构造、构造函数校验、baseURL 尾斜杠处理、getModelName
+
+### Configuration
+
+使用自定义 provider 的 `.env` 配置示例：
+
+```ini
+MODEL_PROVIDER=custom
+
+# 必填三项
+CUSTOM_API_KEY=sk-your-key
+CUSTOM_BASE_URL=https://your-endpoint.com/v1
+CUSTOM_MODEL_NAME=your-model-name
+
+# 可选（都有默认值）
+CUSTOM_AUTH_HEADER=bearer         # bearer | x-api-key | custom
+CUSTOM_PATH=/chat/completions
+CUSTOM_TIMEOUT_MS=60000
+CUSTOM_THINKING_MODE=disabled     # disabled | openai | qwen_extra_body
+
+# 自定义 Header（authHeader=custom 时使用）
+CUSTOM_AUTH_HEADER=custom
+CUSTOM_AUTH_HEADER_VALUE="X-API-Key: {{key}}"
+```
+
+### Technical Details
+
+- 新增文件:
+  - `src/custom-client.ts` — 通用 OpenAI 兼容客户端（实现 `VisionClient` 接口）
+  - `test/test-custom.ts` — CustomClient 单元测试
+- 修改文件:
+  - `src/config.ts` — `ModelProvider` union 新增 `custom`，新增 `CustomProviderConfig` 接口，`LumaConfig` 新增 `customProvider?`，`loadConfig` 解析 `CUSTOM_*` 环境变量
+  - `src/index.ts` — provider 选择改为 `CLIENT_REGISTRY` 模式，import `CustomClient` 和 `LumaConfig`
+  - `.env.example` — 新增 Custom Provider 区块
+
 ## [1.4.1] - 2026-06-13
 
 ### Fixed

@@ -62,12 +62,34 @@ npx -y luma-mcp
 - `qwen` -> `DASHSCOPE_API_KEY`
 - `volcengine` -> `VOLCENGINE_API_KEY`
 - `hunyuan` -> `HUNYUAN_API_KEY`
+- `custom` -> `CUSTOM_API_KEY` + `CUSTOM_BASE_URL` + `CUSTOM_MODEL_NAME`（任意 OpenAI 兼容端点）
 
 可选模型覆盖：
 
 - `MODEL_NAME=doubao-seed-1-6-flash-250828`
 - `MODEL_NAME=hunyuan-t1-vision-20250916`
 - `MODEL_NAME=HY-vision-1.5-instruct`
+
+#### Custom Provider（v1.5.0+）
+
+使用任意 OpenAI 兼容端点（OpenAI、OpenRouter、Together AI、Anthropic 代理、本地 vLLM/Ollama 等）：
+
+```bash
+claude mcp add -s user luma-mcp \
+  --env MODEL_PROVIDER=custom \
+  --env CUSTOM_API_KEY=sk-your-key \
+  --env CUSTOM_BASE_URL=https://your-endpoint.com/v1 \
+  --env CUSTOM_MODEL_NAME=your-model \
+  -- npx -y luma-mcp
+```
+
+可选配置（都有默认值）：
+
+- `CUSTOM_AUTH_HEADER=bearer` — `bearer` / `x-api-key` / `custom`
+- `CUSTOM_PATH=/chat/completions` — API 路径
+- `CUSTOM_TIMEOUT_MS=60000` — 超时毫秒
+- `CUSTOM_THINKING_MODE=disabled` — `disabled` / `openai` / `qwen_extra_body`
+- `CUSTOM_AUTH_HEADER_VALUE="X-API-Key: {{key}}"` — 自定义 Header 模板
 
 ### 快捷配置命令
 

@@ -62,12 +62,34 @@ Replace `MODEL_PROVIDER` and its matching key with the provider you want:
 - `qwen` -> `DASHSCOPE_API_KEY`
 - `volcengine` -> `VOLCENGINE_API_KEY`
 - `hunyuan` -> `HUNYUAN_API_KEY`
+- `custom` -> `CUSTOM_API_KEY` + `CUSTOM_BASE_URL` + `CUSTOM_MODEL_NAME` (any OpenAI-compatible endpoint)
 
-Optional model overrides:
+Optional model override:
 
 - `MODEL_NAME=doubao-seed-1-6-flash-250828`
 - `MODEL_NAME=hunyuan-t1-vision-20250916`
 - `MODEL_NAME=HY-vision-1.5-instruct`
+
+#### Custom Provider (v1.5.0+)
+
+Use any OpenAI-compatible endpoint (OpenAI, OpenRouter, Together AI, Anthropic proxy, local vLLM/Ollama, etc.):
+
+```bash
+claude mcp add -s user luma-mcp \
+  --env MODEL_PROVIDER=custom \
+  --env CUSTOM_API_KEY=sk-your-key \
+  --env CUSTOM_BASE_URL=https://your-endpoint.com/v1 \
+  --env CUSTOM_MODEL_NAME=your-model \
+  -- npx -y luma-mcp
+```
+
+Optional config (all have defaults):
+
+- `CUSTOM_AUTH_HEADER=bearer` — `bearer` / `x-api-key` / `custom`
+- `CUSTOM_PATH=/chat/completions` — API path
+- `CUSTOM_TIMEOUT_MS=60000` — timeout in ms
+- `CUSTOM_THINKING_MODE=disabled` — `disabled` / `openai` / `qwen_extra_body`
+- `CUSTOM_AUTH_HEADER_VALUE="X-API-Key: {{key}}"` — custom header template
 
 ### Quick Setup Commands
 
