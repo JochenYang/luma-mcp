@@ -6,22 +6,23 @@
 
 ### Added
 
-- OpenAI-compatible client base: shared chat-completions logic; provider files are thin presets
-- Optional task_type on image_understand: auto|general|ocr|ui|debug|describe (omit/auto keeps pre-1.6 behavior)
-- Response meta (opt-in): INCLUDE_META=true or LUMA_DEBUG=1 appends preprocess/API timing and tile count
-- Config hardening: provider allowlist, numeric clamps, missing API key startup warning, MCP server version from package.json
-- Unit tests: npm run test:unit
+- 🆕 **OpenAI 兼容客户端基类**: 新增 `OpenAICompatibleVisionClient`，统一 chat-completions 请求/响应/thinking 逻辑；各 provider 收成薄 preset
+- 🆕 **可选 `task_type`**: 单工具 `image_understand` 支持 `auto|general|ocr|ui|debug|describe`；省略或 `auto` 时与 1.5 行为兼容
+- 🆕 **可选响应 meta**: `INCLUDE_META=true` 或 `LUMA_DEBUG=1` 时在结果末尾附加 `luma_meta`（预处理/API 耗时、裁剪数等）
+- 🆕 **配置加固**: provider 白名单、数值 clamp、缺 API Key 启动 warn、MCP server version 与 `package.json` 对齐
+- 🆕 **测试**: `npm run test:unit`；`npm run test:mcp` 走真实 stdio 调用 `image_understand`
 
 ### Changed
 
-- Provider clients refactored onto shared base (behavior-preserving)
-- OCR task_type defaults to single-image high-fidelity (skips multi-crop)
-- Error messages redact Bearer tokens and common secret query params
+- 各 provider 客户端重构到共享基类（对外行为保持兼容）
+- `task_type=ocr` 默认单图高保真处理（跳过 multi-crop）
+- 错误信息脱敏：Bearer token 与常见 secret query 参数
 
 ### Compatibility
 
-- Single tool name image_understand unchanged
-- Existing env vars and provider names unchanged; new env vars are optional
+- 仍为单一工具名 `image_understand`
+- 既有环境变量与 provider 名称不变；新增 env 均为可选
+
 
 ## [1.5.0] - 2026-06-13
 
