@@ -22,7 +22,12 @@ export function withRetry<T>(
         // 例外：429 Too Many Requests / 408 Request Timeout 应带退避重试
         if (axios.isAxiosError(error) && error.response?.status) {
           const status = error.response.status;
-          if (status >= 400 && status < 500 && status !== 429 && status !== 408) {
+          if (
+            status >= 400 &&
+            status < 500 &&
+            status !== 429 &&
+            status !== 408
+          ) {
             throw error;
           }
         }
@@ -32,7 +37,8 @@ export function withRetry<T>(
         }
 
         // 指数退避 + 随机抖动（1x ~ 1.5x），避免惊群效应
-        const delay = initialDelay * Math.pow(2, attempt) * (1 + Math.random() * 0.5);
+        const delay =
+          initialDelay * Math.pow(2, attempt) * (1 + Math.random() * 0.5);
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
@@ -46,7 +52,7 @@ export function withRetry<T>(
 export function isUrl(source: string): boolean {
   try {
     const url = new URL(source);
-    return url.protocol === 'http:' || url.protocol === 'https:';
+    return url.protocol === "http:" || url.protocol === "https:";
   } catch {
     return false;
   }
@@ -57,7 +63,7 @@ export function isUrl(source: string): boolean {
  */
 export function createSuccessResponse(data: string) {
   return {
-    content: [{ type: 'text' as const, text: data }],
+    content: [{ type: "text" as const, text: data }],
   };
 }
 
@@ -66,7 +72,59 @@ export function createSuccessResponse(data: string) {
  */
 export function createErrorResponse(message: string) {
   return {
-    content: [{ type: 'text' as const, text: `错误: ${message}` }],
+    content: [{ type: "text" as const, text: `错误: ${message}` }],
     isError: true,
   };
+}
+
+export interface CallMeta {
+  provider: string;
+  model: string;
+  taskType: string;
+  tileCount: number;
+  multiCrop: boolean;
+  preferText: boolean;
+  preprocessMs: number;
+  apiMs: number;
+  totalMs: number;
+}
+
+/**
+ * Optionally append machine-readable meta block for debugging / cost awareness.
+ * Default off so host models still see plain analysis text.
+ */
+export function formatResultWithMeta(
+  analysis: string,
+  meta: CallMeta | undefined,
+  includeMeta: boolean
+): string {
+  if (!includeMeta || !meta) {
+    return analysis;
+  }
+
+  const lines = [
+    analysis,
+    "",
+    "---",
+    "luma_meta:",
+    `- provider: ${meta.provider}`,
+    `- model: ${meta.model}`,
+    `- task_type: ${meta.taskType}`,
+    `- tiles: ${meta.tileCount}`,
+    `- multi_crop: ${meta.multiCrop}`,
+    `- prefer_text: ${meta.preferText}`,
+    `- preprocess_ms: ${meta.preprocessMs}`,
+    `- api_ms: ${meta.apiMs}`,
+    `- total_ms: ${meta.totalMs}`,
+  ];
+  return lines.join("\n");
+}
+
+/**
+ * Redact secrets from paths/URLs in user-facing errors
+ */
+export function sanitizeErrorMessage(message: string): string {
+  return message
+    .replace(/([?&](api[_-]?key|token|key|secret|password)=)[^&\s]+/gi, "$1***")
+    .replace(/Bearer\s+[A-Za-z0-9._\-]+/gi, "Bearer ***");
 }

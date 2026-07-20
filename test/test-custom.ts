@@ -80,6 +80,7 @@ function makeConfig(customCfg: Partial<CustomProviderConfig>): LumaConfig {
     enableThinking: true,
     multiCrop: true,
     multiCropMaxTiles: 5,
+    includeMeta: false,
     customProvider: fullCustomCfg,
   };
 }
@@ -150,6 +151,7 @@ function testConstructorValidation() {
       enableThinking: true,
       multiCrop: true,
       multiCropMaxTiles: 5,
+      includeMeta: false,
       // customProvider missing
     };
     new CustomClient(config);

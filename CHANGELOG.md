@@ -2,6 +2,27 @@
 
 本项目的所有重大变更都将记录在此文件中。
 
+## [1.6.0] - 2026-07-20
+
+### Added
+
+- OpenAI-compatible client base: shared chat-completions logic; provider files are thin presets
+- Optional task_type on image_understand: auto|general|ocr|ui|debug|describe (omit/auto keeps pre-1.6 behavior)
+- Response meta (opt-in): INCLUDE_META=true or LUMA_DEBUG=1 appends preprocess/API timing and tile count
+- Config hardening: provider allowlist, numeric clamps, missing API key startup warning, MCP server version from package.json
+- Unit tests: npm run test:unit
+
+### Changed
+
+- Provider clients refactored onto shared base (behavior-preserving)
+- OCR task_type defaults to single-image high-fidelity (skips multi-crop)
+- Error messages redact Bearer tokens and common secret query params
+
+### Compatibility
+
+- Single tool name image_understand unchanged
+- Existing env vars and provider names unchanged; new env vars are optional
+
 ## [1.5.0] - 2026-06-13
 
 ### Added

@@ -1,6 +1,6 @@
 {
   "name": "luma-mcp",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Multi-model vision understanding MCP server. Supports GLM-4.6V (Zhipu), DeepSeek-OCR (SiliconFlow - Free), Qwen3-VL-Flash (Aliyun), and Doubao-Seed-1.6 (Volcengine)",
   "type": "module",
   "files": [
@@ -17,7 +17,9 @@
     "watch": "tsc --watch",
     "prepare": "npm run build",
     "typecheck": "tsc -p tsconfig.check.json",
-    "test:local": "tsx test/test-local.ts"
+    "test:local": "tsx test/test-local.ts",
+    "test:unit": "tsx test/test-custom.ts && tsx test/test-task-types.ts",
+    "test:mcp": "tsx test/test-mcp-stdio.ts"
   },
   "keywords": [
     "mcp",

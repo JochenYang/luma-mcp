@@ -152,10 +152,15 @@ claude mcp add -s user luma-mcp --env MODEL_PROVIDER=hunyuan --env HUNYUAN_API_K
 
 ### `image_understand`
 
-参数：
+仍为**单一工具**（兼容旧客户端）。参数：
 
 - `image_source`：本地路径、HTTP(S) 图片 URL、Data URI
 - `prompt`：用户对图片的原始问题
+- `task_type`（可选）：`auto` | `general` | `ocr` | `ui` | `debug` | `describe`  
+  - 省略或 `auto`：与旧版一致，按 prompt 启发式路由  
+  - `ocr`：文字提取，默认单图高保真（关闭 multi-crop）  
+  - `ui` / `debug`：界面结构 / 报错截图，倾向文本保真  
+  - `describe`：简短描述  
 
 示例：
 
@@ -163,11 +168,13 @@ claude mcp add -s user luma-mcp --env MODEL_PROVIDER=hunyuan --env HUNYUAN_API_K
 image_understand({
   image_source: "./screenshot.png",
   prompt: "分析这个页面的布局和主要组件结构",
+  task_type: "ui",
 });
 
 image_understand({
   image_source: "./code-error.png",
   prompt: "这段代码为什么报错？请给出修复建议",
+  // task_type 可省略，行为与旧版兼容
 });
 
 image_understand({
@@ -181,6 +188,7 @@ image_understand({
 - 非视觉模型需要明确提示调用 MCP 工具
 - 代码截图、OCR、长图、表格这类文本密集图片会自动启用更保真的处理方式
 - 大图会按配置自动生成原图加裁剪图，提高细节理解能力
+- 需要排查耗时/裁剪数时设 `INCLUDE_META=true` 或 `LUMA_DEBUG=1`，结果末尾会附 `luma_meta`
 
 ## 环境变量
 
@@ -188,10 +196,12 @@ image_understand({
 
 | 变量名               | 默认值     | 说明                                                                |
 | -------------------- | ---------- | ------------------------------------------------------------------- |
-| `MODEL_PROVIDER`     | `zhipu`    | 模型提供商：`zhipu`、`siliconflow`、`qwen`、`volcengine`、`hunyuan` |
+| `MODEL_PROVIDER`     | `zhipu`    | 模型提供商：`zhipu`、`siliconflow`、`qwen`、`volcengine`、`hunyuan`、`custom` |
 | `MODEL_NAME`         | 自动选择   | 模型名称                                                            |
 | `BASE_VISION_PROMPT` | 内置默认值 | 自定义基础视觉提示词                                                |
 | `MAX_TOKENS`         | `8192`     | 最大生成 token 数（部分模型有硬上限，详见下方说明）                 |
+| `INCLUDE_META`       | `false`    | 为 `true` 时在工具结果末尾附加预处理/API 耗时等 meta                |
+| `LUMA_DEBUG`         | 关闭       | `1`/`true` 时等同开启 `INCLUDE_META`                                |
 
 > [!IMPORTANT]
 > **关于 Token 限制的特别说明：**
@@ -212,6 +222,9 @@ image_understand({
 ## 本地测试
 
 ```bash
+# 单元测试（不调用真实 API）
+npm run test:unit
+
 # 基础测试
 npm run test:local ./test.png
 
@@ -237,15 +250,18 @@ npm run typecheck
 ```text
 luma-mcp/
 ├── src/
-│   ├── index.ts              # MCP 服务器入口
-│   ├── config.ts             # 配置管理
-│   ├── vision-client.ts      # 视觉模型客户端接口
-│   ├── zhipu-client.ts       # GLM-4.6V 客户端
-│   ├── siliconflow-client.ts # DeepSeek-OCR 客户端
-│   ├── qwen-client.ts        # Qwen3-VL 客户端
-│   ├── volcengine-client.ts  # Doubao-Seed-1.6 客户端
-│   ├── hunyuan-client.ts     # Hunyuan-Vision-1.5 客户端
-│   ├── image-processor.ts    # 图片预处理与裁剪
+│   ├── index.ts                      # MCP 服务器入口
+│   ├── config.ts                     # 配置管理
+│   ├── task-types.ts                 # 可选 task_type 路由
+│   ├── vision-client.ts              # 视觉模型客户端接口
+│   ├── openai-compatible-client.ts   # OpenAI 兼容基类
+│   ├── zhipu-client.ts               # GLM 客户端
+│   ├── siliconflow-client.ts         # DeepSeek-OCR 客户端
+│   ├── qwen-client.ts                # Qwen VL 客户端
+│   ├── volcengine-client.ts          # Doubao 客户端
+│   ├── hunyuan-client.ts             # Hunyuan 客户端
+│   ├── custom-client.ts              # 任意 OpenAI 兼容端点
+│   ├── image-processor.ts            # 图片预处理与裁剪
 │   └── utils/
 │       ├── helpers.ts
 │       └── logger.ts

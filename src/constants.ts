@@ -33,3 +33,6 @@ export const DEFAULT_BASE_VISION_PROMPT = [
  */
 export const TEXT_HEAVY_PROMPT_PATTERN =
   /ocr|extract|text|code|error|stack trace|ui|layout|form|table|document|screenshot|screen|文字|文本|代码|报错|界面|布局|表格|文档|长图|表单|截图/i;
+
+/** Package version mirrored for MCP server metadata */
+export const PACKAGE_VERSION = "1.6.0";
